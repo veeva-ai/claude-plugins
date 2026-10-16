@@ -1,0 +1,50 @@
+RECREATE Dashboard purchase_orders_dashboard__c (
+   active(true),
+   label('Purchase Orders Dashboard'),
+   description('Purchase order total by region'),
+   editors(),
+   viewers(),
+   dashboard_markup({<?xml version="1.0" encoding="UTF-8"?>
+<vault:dashboard xmlns:vault="VeevaVault" type="Three-Columns">
+  <vault:chart name="purchase_order_chart_count__c" label="Purchase Order Count" type="number" featured="false" report="Report.open_purchase_orders_by_region__c">
+    <vault:format showmetrics="true" showgroupings="true" showpercentage="false">
+      <vault:range color="#05CD65" min="0.0" max="5.0" />
+      <vault:range color="#FFB628" min="6.0" max="10.0" />
+      <vault:range color="#E64B19" min="11.0" max="100.0" />
+    </vault:format>
+    <vault:series metric="RecordCount" unitlabel=" ">
+      <vault:grouping key="purchase_order__c___vendor__c.region__c" value="AllValues" />
+    </vault:series>
+  </vault:chart>
+  <vault:chart name="purchase_order_chart_table__c" label="Purchase Order Table" type="table" featured="false" report="Report.open_purchase_orders_by_region__c">
+    <vault:format showmetrics="true" showgroupings="true" groupsToDisplay="5" showReportName="false" />
+    <vault:series metric="RecordCount">
+      <vault:grouping key="purchase_order__c___vendor__c.region__c" value="AllValues" />
+    </vault:series>
+    <vault:tableChartReportColumns showRecordDetails="false">
+      <vault:reportColumn key="grp_purchase_order__c___vendor__c.region__c" label="Region" property="data" />
+      <vault:reportColumn key="purchase_order__c.total__c" label="Total" property="data" />
+    </vault:tableChartReportColumns>
+  </vault:chart>
+  <vault:chart name="purchase_order_chart_column__c" label="Purchase Order Count by Region" type="column" featured="false" report="Report.open_purchase_orders_by_region__c">
+    <vault:format showlegend="true" showvalue="true" xaxislabel="Region" yaxislabel="Record Count (Purchase Order)" stacking="normal" />
+    <vault:series metric="RecordCount">
+      <vault:grouping key="purchase_order__c___vendor__c.region__c" value="" />
+    </vault:series>
+  </vault:chart>
+  <vault:chart name="purchase_order_chart_bar__c" label="Purchase Orders by Region" type="bar" featured="false" report="Report.open_purchase_orders_by_region__c">
+    <vault:format showlegend="true" showvalue="true" xaxislabel="Region" yaxislabel="Record Count (Purchase Order)" />
+    <vault:series metric="RecordCount">
+      <vault:grouping key="purchase_order__c___vendor__c.region__c" value="" />
+    </vault:series>
+  </vault:chart>
+  <vault:chart name="purchase_order_chart_pie__c" label="Purchase Order Share by Region" type="pie" featured="false" report="Report.open_purchase_orders_by_region__c">
+    <vault:format showlegend="true" showcategory="true" showpercentage="true" />
+    <vault:series metric="RecordCount">
+      <vault:grouping key="purchase_order__c___vendor__c.region__c" value="" />
+    </vault:series>
+  </vault:chart>
+  <vault:spacer />
+</vault:dashboard>
+})
+);

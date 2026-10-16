@@ -1,0 +1,38 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "veeva-claude-plugins",
+  "version": "26.42.0",
+  "description": "Claude Code plugins for Veeva Products.",
+  "owner": {
+    "name": "Veeva Systems"
+  },
+  "plugins": [
+    {
+      "name": "vault",
+      "description": "For any user working with a live Vault: signing in with an API access token or a username and password, and retrieving data with VQL queries.",
+      "author": {
+        "name": "Veeva Systems"
+      },
+      "category": "core",
+      "source": "./plugins/vault"
+    },
+    {
+      "name": "vault-developer",
+      "description": "For developers using code to extend, customize, or integrate with Vault: the Vault API, Java SDK, Custom Pages, and Vault AI Agents.",
+      "author": {
+        "name": "Veeva Systems"
+      },
+      "category": "development",
+      "source": "./plugins/vault-developer"
+    },
+    {
+      "name": "vault-administrator",
+      "description": "For administrators working in a live Vault: pulling the Vault's configuration to disk, moving files through Vault File Staging, scripting configuration changes with MDL, and explaining and drafting reports and dashboards. Signs in through the vault plugin's login skill.",
+      "author": {
+        "name": "Veeva Systems"
+      },
+      "category": "administration",
+      "source": "./plugins/vault-administrator"
+    }
+  ]
+}

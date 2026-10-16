@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "vault-administrator",
+  "version": "26.42.0",
+  "description": "For administrators working in a live Vault: pulling the Vault's configuration to disk, moving files through Vault File Staging, scripting configuration changes with MDL, and explaining and drafting reports and dashboards. Signs in through the vault plugin's login skill.",
+  "author": {
+    "name": "Veeva Systems"
+  },
+  "keywords": [
+    "veeva",
+    "vault",
+    "admin",
+    "config",
+    "file-staging",
+    "mdl",
+    "reporting",
+    "configuration"
+  ],
+  "dependencies": [
+    "vault"
+  ]
+}

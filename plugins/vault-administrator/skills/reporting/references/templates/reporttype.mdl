@@ -1,0 +1,13 @@
+RECREATE Reporttype purchase_order_with_vendor__c (
+  label('Purchase Order with Vendor'),
+  active(true),
+  description('Purchase Order with its Vendor'),
+  primary_object('purchase_order__c'),
+  primary_objects(),
+  configuration({<vrt:reportType xmlns:vrt="VaultReporttype">
+  <vrt:upRelationships>
+    <vrt:upRelationship key="purchase_order__c.vendor__c" />
+  </vrt:upRelationships>
+</vrt:reportType>}),
+  class('Standard')
+);

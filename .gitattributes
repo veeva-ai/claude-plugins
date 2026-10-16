@@ -1,0 +1,5 @@
+# Store LF in the repo and check out LF everywhere, so a Windows clone with
+# core.autocrlf=true gets the same bytes as everyone else and shell snippets
+# copied out of the skills keep working.
+* text=auto eol=lf
+*.sh text eol=lf

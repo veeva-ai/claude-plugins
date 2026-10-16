@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "vault",
+  "version": "26.42.0",
+  "description": "For any user working with a live Vault: signing in with an API access token or a username and password, and retrieving data with VQL queries.",
+  "author": {
+    "name": "Veeva Systems"
+  },
+  "keywords": [
+    "veeva",
+    "vault",
+    "login",
+    "vql",
+    "query",
+    "records",
+    "documents",
+    "data"
+  ]
+}

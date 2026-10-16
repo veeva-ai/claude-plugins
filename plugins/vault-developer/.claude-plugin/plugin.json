@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "vault-developer",
+  "version": "26.42.0",
+  "description": "For developers using code to extend, customize, or integrate with Vault: the Vault API, Java SDK, Custom Pages, and Vault AI Agents.",
+  "author": {
+    "name": "Veeva Systems"
+  },
+  "keywords": [
+    "custom",
+    "integration",
+    "api",
+    "java",
+    "code",
+    "ai",
+    "agents"
+  ],
+  "dependencies": [
+    "vault",
+    "vault-administrator"
+  ]
+}

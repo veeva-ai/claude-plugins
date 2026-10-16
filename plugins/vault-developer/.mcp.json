@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vault-docs-mcp": {
+      "type": "http",
+      "url": "https://docs.veevavault.dev/mcp"
+    }
+  }
+}

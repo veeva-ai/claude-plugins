@@ -1,0 +1,51 @@
+RECREATE Report open_purchase_orders_by_region__c (
+   label('Open Purchase Orders by Region'),
+   active(true),
+   description('Open purchase order total grouped by vendor region'),
+   format('tabular'),
+   definition({<?xml version="1.0" encoding="UTF-8"?>
+<vrp:query xmlns:vrp="VaultReport">
+  <vrp:querySettings includeAllVersions="false" />
+  <vrp:select>
+    <vrp:selectItem type="PROPERTY" action="NONE" property="purchase_order__c.name__v" />
+    <vrp:selectItem type="PROPERTY" action="NONE" property="purchase_order__c.total__c" />
+    <vrp:selectItem type="PROPERTY" action="NONE" property="purchase_order__c___vendor__c.name__v" />
+    <vrp:selectItem type="PROPERTY" action="NONE" property="purchase_order__c___vendor__c.region__c" />
+  </vrp:select>
+  <vrp:where>
+    <vrp:whereItem action="NE" leftValue="purchase_order__c.state__v" rightValue="Approved" labelValues="Approved" labelLanguage="en" type="PROPERTY" rightValueType="VALUE" runtime="false" />
+  </vrp:where>
+  <vrp:group>
+    <vrp:groupItem index="0" name="purchase_order__c___vendor__c.region__c" groupBySortOn="purchase_order__c___vendor__c.region__c" groupBySortOrder="ASCENDING">
+      <vrp:function>
+        <vrp:selectItem type="FUNCTION" action="SUM" property="SUM" display="NUMBER">
+          <vrp:children>
+            <vrp:selectItem type="PROPERTY" action="NONE" property="purchase_order__c.total__c" />
+          </vrp:children>
+        </vrp:selectItem>
+      </vrp:function>
+    </vrp:groupItem>
+  </vrp:group>
+  <vrp:order>
+    <vrp:orderItem index="0" name="purchase_order__c.name__v" sortDirection="ASCENDING" />
+  </vrp:order>
+</vrp:query>
+}),
+   layout({<?xml version="1.0" encoding="UTF-8"?>
+<vrp:reportFormat xmlns:vrp="VaultReport" joinObjectType="NONE" generateComponentEvents="true">
+  <vrp:docType>base_document__v</vrp:docType>
+  <vrp:targetDocumentAlias>default</vrp:targetDocumentAlias>
+  <vrp:sourceDocumentAlias>default</vrp:sourceDocumentAlias>
+  <vrp:enableFilterAliases>false</vrp:enableFilterAliases>
+  <vrp:columns>
+    <vrp:column key="purchase_order__c.name__v" type="documentProperty" index="0" columnWidth="200" />
+    <vrp:column key="purchase_order__c.total__c" type="documentProperty" index="1" columnWidth="155" />
+    <vrp:column key="purchase_order__c___vendor__c.name__v" type="documentProperty" index="2" columnWidth="200" />
+    <vrp:column key="purchase_order__c___vendor__c.region__c" type="documentProperty" index="3" columnWidth="155" />
+  </vrp:columns>
+</vrp:reportFormat>
+}),
+   content_type('Object'),
+   class('Standard'),
+   report_type('Reporttype.purchase_order_with_vendor__c')
+);

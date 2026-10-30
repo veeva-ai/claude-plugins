@@ -4,8 +4,9 @@ What this skill needs to sign in and read back an error correctly. For a full en
 field beyond what's here, ask the docs MCP (`mcp__vault-docs-mcp__search_documentation`,
 source `vault_api_reference`) rather than guessing.
 
-On a live call the authorization value is `$AUTH`, set from the Vault CLI's credential store
-or from an exported token; see SKILL.md Steps 3 and 5. The `{SESSION_ID}` placeholder in the
+On a live call with the CLI, `vault api` sends the stored session and no variable holds it
+(SKILL.md Step 3). Without the CLI the authorization value is `$AUTH`, built from the token the
+user exported (SKILL.md Step 5). The `{SESSION_ID}` placeholder in the
 examples below is for the other case, a
 command being handed to a human to run instead of executed by the skill. A real credential is
 never written into a file, a script, or the transcript either way.

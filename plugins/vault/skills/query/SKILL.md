@@ -2,18 +2,18 @@
 name: query
 version: "0.1.0"
 description: >
-  For any Vault user who needs to retrieve data from Vault records or documents.
-  Turns plain-English questions into correct, ready-to-run VQL; reviews existing queries for
-  syntax errors, display-name misuse, IS NULL/IS NOT NULL usage, or wrong relationship syntax;
-  answers general VQL questions about clause order, relationship traversal, and pagination; and
-  offers to run any confirmed query against the connected Vault. Trigger on: "write me a query",
-  "help me with VQL", "/query", "get all records where...", "find documents owned by...",
-  "pull all X from Y", "how do I get all...", a pasted VQL query for review, questions about
-  slow or misbehaving queries, or any plain-English Vault data retrieval request, even if the
-  user never says "VQL". Do not use for Java SDK code (vault-developer → java-sdk), MDL/schema
-  changes (vault-administrator → mdl), building, explaining or cloning a report or a dashboard,
-  which is a Vault Report component and not a query (vault-administrator → reporting), or bulk data extracts to a
-  file, which are a Vault Loader extract job (vault-developer → api).
+  For any Vault user retrieving data from Vault records or documents.
+  Turns plain English into ready-to-run VQL; reviews existing queries for syntax errors,
+  display-name misuse, IS NULL/IS NOT NULL usage, or wrong relationship syntax; answers general
+  VQL questions; and offers to run a confirmed query on the connected Vault. Trigger on:
+  "write me a query", "help me with VQL", "/query", "get all records where...", "find documents
+  owned by...", "pull all X from Y", "how do I get all...", "which jobs didn't finish this
+  week", questions about slow or misbehaving queries, or any plain-English Vault data retrieval
+  request, job history and workflows included, even if the user never says "VQL". Do not use
+  for Java SDK code (vault-developer → java-sdk), MDL/schema changes (vault-administrator →
+  mdl), building, explaining or cloning a report or dashboard, which is a Vault Report
+  component and not a query (vault-administrator → reporting), or bulk extracts to a file,
+  which are a Vault Loader job (vault-developer → api).
 ---
 
 # VQL Query
@@ -219,8 +219,8 @@ filling in. Never present a flagged guess as if it were real VQL.
 literal translation returns `INCORRECT_QUERY_SYNTAX_ERROR` or `function [X] is unknown`.
 "How many" is the filtered `SELECT` with `PAGESIZE 0`, reading `responseDetails.total` off the
 response; on the CLI, Step 6 shows how to print it. "Group by", "sum", and "distinct" are the
-raw field selected with a page size that covers the population, then grouped, summed, or
-deduped client-side.
+raw field selected across every page (`--all` on the CLI, `next_page` on the API), then
+grouped, summed, or deduped client-side.
 
 ---
 
@@ -245,14 +245,16 @@ answer, or an older version, means offer to install or update it first, per rule
 failed install.
 
 ```bash
-vault query "<your VQL here>" --dns mycompany-qa.veevavault.com
+vault query "<your VQL here>"
 ```
 
-Wrap the VQL in double quotes; its string values use single quotes. `--dns` is the DNS the
-user named, and without it the query runs against the active environment, so
-name the DNS you are about to hit. `--format json` or `--format csv` when the result feeds
-something else, `--all` only when the user has asked for every page. A page holds 1000 records. A
-sign-in error goes to login; do not ask for a credential here.
+Wrap the VQL in double quotes; its string values use single quotes. The query runs on the
+CLI's current Vault, so run the login skill's proof line first and name the DNS you are about
+to hit. `--format json` or `--format csv` when the result feeds
+something else, `--all` only when the user has asked for every page. Don't build on a page
+size: Vault's default page is 200 for `documents`, 1000 for objects and 250 for a subquery, and a
+wide `SELECT` comes back in smaller pages. A sign-in error goes to login; do not ask for a
+credential here.
 
 A count-only question needs the total, not the rows. The count is the filtered `SELECT` with
 `PAGESIZE 0`, and the number is `responseDetails.total` in the query response, so run it through a

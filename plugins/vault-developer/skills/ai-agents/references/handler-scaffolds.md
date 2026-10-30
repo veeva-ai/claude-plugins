@@ -435,6 +435,6 @@ in its own transaction.
 
 MDL registration is what makes any of this reachable from the UI. A deployed record action becomes a
 clickable user action through an `Objectaction` whose `action` attribute names the Java class as
-`Recordaction.<package>.<ClassName>`, and a trigger needs its own component registration. Authoring
+`Recordaction.<package>.<ClassName>`. A trigger needs no MDL: deploying the class registers it. Authoring
 and executing that MDL is the vault-administrator plugin's mdl skill's job, so name it in the
 handoff: the record action is not user-visible until that component exists.

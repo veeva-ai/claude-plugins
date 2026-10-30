@@ -132,7 +132,7 @@ Look for an existing `src/main/java/com/veeva/vault/custom` in the developer's p
 `com.veeva.vault.custom.rim.submissions.triggers`), but do not invent one the developer did not
 ask for. No such directory? Ask where the class goes rather than guessing at their project layout.
 
-A Vault CLI workspace (a directory with `.vault/state.json`) keeps code under `javasdk/` by
+A Vault CLI workspace (a directory with `.vault/dependencies.json`) keeps code under `javasdk/` by
 package path, `javasdk/com/veeva/vault/custom/...`, with no `src/main/java` in front. The CLI
 builds the class name from the path under `javasdk/`, so a Maven layout placed there produces
 the wrong name. When the developer works in a workspace, that is where the class goes; when
@@ -209,8 +209,8 @@ instead of an unexpected error with no detail.
 ## Step 6: Confirm
 
 Before the class goes anywhere near a deploy, run each VQL string it holds read-only with
-`vault query "<VQL>" --dns <dns>`, with real values in place of any token, and fix the ones
-that fail. A query is a read and writes nothing, but it needs a signed-in CLI (the vault plugin's
+`vault query "<VQL>"` on the Vault the login skill's proof line shows, with real values in place
+of any token, and fix the ones that fail. A query is a read and writes nothing, but it needs a signed-in CLI (the vault plugin's
 login skill).
 Without the CLI, hand the strings to the developer to run first.
 

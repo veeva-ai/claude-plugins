@@ -169,8 +169,8 @@ than guessing the suffix, or hand the lookup to the api skill.
 Open `references/verification-checklist.md` and run every check that applies to what was just
 generated. Fix in place and re-check. Never report success with an open item.
 
-Then run every VQL string in a handler read-only with `vault query "<VQL>" --dns <dns>`, with
-real values in place of any token, and fix the ones that fail before the hand-off. A query that fails inside a
+Then run every VQL string in a handler read-only with `vault query "<VQL>"`, on the Vault the
+login skill's proof line shows, with real values in place of any token, and fix the ones that fail before the hand-off. A query that fails inside a
 deployed handler costs a deploy and a debug log to find; here it costs seconds. Without the CLI,
 hand the strings to the developer to run first.
 

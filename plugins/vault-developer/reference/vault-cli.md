@@ -50,19 +50,31 @@ folders are identical to this one; edit this file and run `scripts/validate-all.
 
 ## Commands
 
-`--dns <dns>` picks the Vault on every command below; without it the CLI uses the
-active environment, the Vault the user signed in to last. Pass `--dns` on every command so the
-active one never matters.
+Only `vault login` and `vault switch` take `--dns`. Every other command runs on the CLI's
+current Vault, which changes with each sign-in and switch, so prove which one it is before the
+first command on a Vault and again right before every write:
+
+```bash
+MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '
+```
+
+The host in `> GET https://<dns>/...` is where the next command lands; no line at all means
+the CLI has no sign-in to use. A host that is not the Vault the user named stops the work until
+the CLI is on the right one: `vault switch --dns <dns>`, or, when the installed CLI has no
+`switch` or refuses it (a token sign-in, or a Vault the session cannot reach), the user signs
+in again with `vault login --dns <dns>`. Prove it again after either. A CLI upgrade can drop
+the stored sign-ins; sign in again with the DNS the user named, not one an error suggests.
 
 | Operation | Command |
 |---|---|
 | Is the CLI here | `vault version` |
 | Sign in (SSO in a browser by default) | `vault login`, or `vault login --dns <dns>` to skip the Vault picker |
-| Which Vault the CLI points at | `vault api "/objects/domain?include_application=true"` with no `--dns`; the response names the domain and the Vaults in it. No command lists the stored environments |
+| Which Vault the CLI is on | `MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 \| grep -m1 '^> '`; the host in that line is where every command below runs |
+| Change Vaults | `vault switch --dns <dns>` where the installed CLI has it; otherwise the user runs `vault login --dns <dns>` |
 | Vaults in the user's domain | `vault api "/objects/domain?include_application=true"` returns each Vault's name and ID, no DNS. `vault api "/objects/domains"` returns the user's domains by name and type. Neither returns a Vault DNS, so ask the user for the DNS |
-| Sign out | `vault logout <dns>`, or `vault logout --all` for every stored environment |
+| Sign out | `vault logout` for the current sign-in, or `vault logout --all` for every stored one |
 | Sign in with an API access token | `vault login --dns <dns> --access-token`. The token is read from a no-echo prompt or one line of stdin, never from the command line. Create the token in the API Access Tokens section of the user's profile in Vault |
-| Run VQL | `vault query "<vql>"`, with `--format table\|json\|csv`, `--all` for every page, `--page <n>` for one page. A page holds 1000 records. It has no output-file flag; redirect to save (`> rows.csv`) |
+| Run VQL | `vault query "<vql>"`, with `--format table\|json\|csv`, `--all` for every page, `--page <n>` for one page. Don't count rows by pages: Vault's default page is 200 for `documents` and 1000 for objects, and a wide `SELECT` comes back in smaller pages. It has no output-file flag; redirect to save (`> rows.csv`) |
 | Execute one MDL statement | `vault mdl "<statement>"` |
 | Pull configuration | `vault config pull --dir <dir>`, with `--dry-run` |
 | Preview a push | `vault config push --dir <dir> --dry-run` prints the plan and deploys nothing |
@@ -70,7 +82,7 @@ active one never matters.
 | Call any REST endpoint | `vault api "<path>"` with a leading slash, and `-X`, `-d`, `-F`, `-H`, `-o <file>`. It adds the session itself |
 | Read a component back as MDL | `MSYS_NO_PATHCONV=1 vault api --api-version none "/api/mdl/components/<Type>.<name>" -o <file>`, then read the file. The MDL endpoint is unversioned and returns plain text, so it needs both flags. Give `<file>` as a relative path: on Windows, `vault` writes `/tmp/x` to `C:\tmp\x`, where Git Bash does not look |
 | Run VQL in a form body | `vault api -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "q=<VQL>" /query`. Write a `LIKE` wildcard as `%25`; a bare `%` comes back as "Cannot parse the query [null]" |
-| Build or import a VPK | `vault config package create --dir <dir> --output <file>.vpk` (changed components only), `vault config package deploy --dns <dns> <vpk>` |
+| Build or import a VPK | `vault config package create --dir <dir> --output <file>.vpk` (the workspace's differences from the CLI's current Vault), `vault config package deploy <vpk>` |
 
 `vault mdl` takes the whole statement as one argument. MDL uses single quotes for strings,
 so wrap the statement in double quotes, and escape any double quote inside it.
@@ -83,6 +95,12 @@ undo, and a component added in Vault since shows up as a delete. The pull comes 
 
 Keep the workspace in git and commit before every pull. A pull replaces the files Vault
 owns, and the commit is what makes it safe to try one.
+
+A pull does not record anywhere in the workspace which Vault it came from, so the first commit
+does: `first pull from <dns>`. Read it back with
+`git -C <dir> log --reverse --format=%s | head -n 1`. A workspace without that commit came from
+somewhere else; ask the user which Vault it was pulled from, and never take it from the folder
+name.
 
 If `cli-interim.md` exists beside this file, read it before a pull or a push. It
 lists what to do when a command misbehaves.
@@ -114,7 +132,7 @@ paths and the production check that comes before a write.
                                                   and its XML sidecar when it has one
   javasdk/                      Java SDK source by package path, com/veeva/vault/custom/...
   custom_pages/<name>/          the built Custom Page distribution and its manifest
-  .vault/                       CLI state: file hashes, the dependency graph, environments
+  .vault/                       CLI state: the dependency graph, relationships, per-type metadata
   .vdxignore                    globs the CLI leaves alone
 ```
 

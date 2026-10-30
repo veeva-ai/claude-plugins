@@ -67,13 +67,26 @@ session and do not raise it again. Step 4 applies either way.
 
 ## Step 2: Resolve the target
 
-Every `vault` command carries `--dns <dns>`, so the CLI's active environment never decides
-where it lands. When the user names a Vault ("use my QA sandbox", "switch to prod"), the CLI has
-no command that lists the Vaults stored on this machine. Take the DNS from what they said, say
-which DNS you are using, and ask for it when they gave only a name: an invalid DNS can
-authenticate against the Vault the user last logged into.
+When the user names a Vault ("use my QA sandbox", "switch to prod"), take the DNS from what
+they said, say which DNS you are using, and ask for it when they gave only a name. Never match
+the name against what the CLI has stored: an invalid DNS can authenticate against the Vault
+the user last logged into.
 
-To see which Vault the CLI points at when `--dns` is left off, make the domain call without it:
+Only `vault login` and `vault switch` take `--dns`. Every other command runs on the CLI's
+current Vault, so prove which Vault that is before the first command and again right before
+every write:
+
+```bash
+MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '
+```
+
+The host in `> GET https://<dns>/...` is where the next command lands; no line at all means
+the CLI has no sign-in to use. When the host is not the Vault the user named, get the CLI there
+first: `vault switch --dns <dns>`, or, when the installed CLI
+has no `switch` or refuses it (a token sign-in, or a Vault the session cannot reach), a new
+sign-in as below. Prove it again after either.
+
+The domain call lists the Vaults in the current Vault's domain:
 
 ```bash
 MSYS_NO_PATHCONV=1 vault api "/objects/domain?include_application=true"
@@ -90,18 +103,20 @@ both before the first command: the DNS of each, which one is the source, and the
 classification of the target (Step 4). Say it back in one line, for example "source DEV
 (mycompany-dev.veevavault.com, Sandbox), target QA (mycompany-qa.veevavault.com, Sandbox)".
 
-From then on every `vault` command carries an explicit `--dns`. Never lean on the active
-environment when two Vaults are in play: it is whichever one the user signed in to last, and a
-push that lands on the source is the mistake this rule exists to prevent. Reads go to either
-Vault. Writes go only to the one the user named as the target, and a write aimed at the source
-stops for confirmation even when the source is a sandbox. The user names both Vaults; the Vault the CLI points at by default is not the target until they say so.
+From then on, work on one Vault at a time: get the CLI onto it, prove it with the line above,
+then run. Prove it again after every switch and right before every write. The CLI is on
+whichever Vault was signed in to or switched to last, and a push that lands on the source is
+the mistake this rule exists to prevent. Reads go to either Vault. Writes go only to the one
+the user named as the target, and a write aimed at the source stops for confirmation even when
+the source is a sandbox. The user names both Vaults; the Vault the CLI is on is not the target
+until they say so.
 
-No call returns every Vault a user can reach by DNS. `GET /objects/domain` lists the Vaults in
+No API call returns every Vault a user can reach by DNS. `GET /objects/domain` lists the Vaults in
 the current Vault's domain by name and ID, and `GET /objects/domains` lists the user's domains
 by name and type. Use them to narrow down which Vault the user means, then ask for its DNS.
 
-Not signed in to that Vault, or the session has expired (a command with `--dns` ends in a
-sign-in error): ask how they sign in to that Vault before
+Not signed in to that Vault, or the session has expired (the proof line prints nothing, or a
+command ends in a sign-in error): ask how they sign in to that Vault before
 handing over a command. The bare `vault login` assumes SSO, and for an account with a Vault
 password and no identity provider the browser flow just ends in "SSO login cancelled". One
 question settles it: SSO, a Vault username and password, or an API access token they already
@@ -151,20 +166,21 @@ does not expire with an idle session.
 Anyone who signed in through the older `vault_login.sh` helper signs in again with
 `vault login`. The two never shared a credential store.
 
-`vault logout <dns>` signs out of one Vault and ends that session in Vault; with no DNS it signs
-out of the active one.
+`vault logout` signs out of the current sign-in and ends that session in Vault;
+`vault logout --all` signs out of every stored one.
 
 ## Step 3: Stay signed in across calls
 
 `vault query`, `vault mdl`, and `vault config` read the stored credential themselves. Nothing
-to export and nothing to refresh; pass `--dns` and run the command.
+to export and nothing to refresh; run the command once the proof line in Step 2 shows the
+right Vault.
 
 A call the CLI has no command for (Vault File Staging, a load, a job, any other endpoint)
 goes through `vault api`, which sends the stored session itself. No variable holds a
 credential:
 
 ```bash
-MSYS_NO_PATHCONV=1 vault api --dns mycompany-qa.veevavault.com "/objects/users/me"
+MSYS_NO_PATHCONV=1 vault api "/objects/users/me"
 ```
 
 (`MSYS_NO_PATHCONV=1`: see `${CLAUDE_PLUGIN_ROOT}/reference/vault-cli.md`.)
@@ -185,11 +201,13 @@ build and no secret in the transcript.
 
 ```bash
 export MSYS_NO_PATHCONV=1
-vault api "/objects/domain?include_application=true" --dns mycompany-qa.veevavault.com | grep -o -E '"(domain_type__v|vault_name__v|name__v|name)" *: *"[^"]*"'
+vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '
+vault api "/objects/domain?include_application=true" | grep -o -E '"(domain_type__v|vault_name__v|name__v|name)" *: *"[^"]*"'
 ```
 
-`vault api` takes a path that starts with `/` and adds the `/api/<version>` segment itself, so
-leave that off (the `export` is for Git Bash; see `vault-cli.md`). Without the CLI, use `AUTH`
+The first call is Step 2's proof, so the classification that follows is for the Vault the
+write lands on. `vault api` takes a path that starts with `/` and adds the `/api/<version>`
+segment itself, so leave that off (the `export` is for Git Bash; see `vault-cli.md`). Without the CLI, use `AUTH`
 and `VAULT_DNS` from Step 5 and call the same path with `curl`:
 
 ```bash
@@ -215,8 +233,8 @@ theirs, and do not guess from the DNS.
 entry can be the beta of the next release, so the release is the last entry the docs MCP
 knows as general; on a Vault that lists v26.2 and v26.3, say v26.2 and mention v26.3 exists.
 
-Say all of it on the one line this skill already states before a write: target DNS,
-classification, family, release. "DEV (mycompany-dev.veevavault.com), Sandbox, Platform, API v26.2"
+Say all of it on the one line this skill already states before a write: target DNS (the host
+the proof line showed), classification, family, release. "DEV (mycompany-dev.veevavault.com), Sandbox, Platform, API v26.2"
 and then never ask again in the session. The family and the applications do not change, so
 keep them in a note per DNS for next time; the classification is read live before every
 write regardless, and the version is re-read when a call is rejected for it. If the domain
@@ -270,14 +288,15 @@ counted per username and Vault DNS over a one-minute window.
 ## Step 6: When a call fails to authenticate
 
 - `INVALID_SESSION_ID`: an expired or ended session, or a disabled or revoked API token. With
-  the CLI, the fix is the user running `vault login --dns <dns>` again. With a token, the
-  token itself is the problem.
+  the CLI, the fix is the user running `vault login --dns <dns>` again, with the DNS they
+  named rather than one the error message suggests. A CLI upgrade can drop every stored
+  sign-in the same way. With a token, the token itself is the problem.
 - A token/username mismatch, or a credential Vault rejects: stop and say so. Never fall back
   to a different credential than the one the user chose.
 - Repeated auth failures then a lockout-shaped error: the auth burst limit. Wait it out rather
   than retrying.
-- A CLI command that exits with a sign-in error while the user says they are signed in: check
-  the DNS you passed against the one they meant, and pass `--dns` on every command.
+- A CLI command that exits with a sign-in error while the user says they are signed in: run
+  the proof line from Step 2 and compare its host with the DNS they meant.
 
 `references/auth-and-errors.md` has the credential types, session duration, the response
 envelope, rate limits, and the tracking headers to capture for Support.

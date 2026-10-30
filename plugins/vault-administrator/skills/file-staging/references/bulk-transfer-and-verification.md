@@ -53,22 +53,27 @@ there is no remote checksum to compare against afterward.
 
 ## Proof of Upload
 
-Proof of upload is partially supported as well, and only while the transfer is happening. The
-single-shot `Create Folder or File` response carries a whole-file `file_content_md5`, and
+Proof of upload is supported, but the API's own checksums exist only while the transfer is
+happening; after that, proof costs a re-download. The single-shot
+`Create Folder or File` response carries a whole-file `file_content_md5`, and
 `Upload to a Session` carries `part_content_md5` for the one part. Both endpoints accept an
 optional `Content-MD5` request header if the developer wants Vault to validate the upload on the
-way in. Once those responses are gone the evidence is gone with them.
+way in. Once those responses are gone, the API has no checksum to give back.
 
 What a report can honestly claim:
 - A single-shot file whose `file_content_md5` matches a locally computed hash is proven intact. A
   mismatch there is real transfer corruption, so fail that file loudly rather than logging it.
-- A resumable file has per-part checksums and no whole-file one. Mark it not verifiable and say
-  why. Never let it read as checksum-verified when the API never returned that evidence.
-- Remote `size` from a recursive listing, compared against the local manifest, is a second and
-  weaker signal, and it is the only after-the-fact check available.
+- A resumable file has per-part checksums and no whole-file one; `Commit Upload Session` returns
+  only a `job_id`. Mark it not verifiable from checksums alone, keep the `part_content_md5` values,
+  and never let it read as checksum-verified by the API.
+- Any file, resumable or not, is proven after the fact by downloading it back through
+  `Download Item Content` in `Range` windows of 50MB or less, reassembling it, and hashing it
+  locally against the manifest. It costs a full download, so offer it rather than default to it.
+- Remote `size` from a recursive listing, compared against the local manifest, is a weaker signal
+  that costs one call.
 
 Build the local manifest before the transfer (the developer's own `md5sum` or PowerShell
 `Get-FileHash -Algorithm MD5`, drafted by this skill and run by them), capture the upload
 responses during it, and pull the listing after. Let the developer choose the report format; the
-columns fall out of the three claims above. The whole artifact is produced locally by their own
+columns fall out of the claims above. The whole artifact is produced locally by their own
 script, and Vault issues no transfer-completion certificate of its own.

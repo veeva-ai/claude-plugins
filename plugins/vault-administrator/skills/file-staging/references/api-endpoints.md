@@ -33,10 +33,15 @@ every other command below 404s or hits the wrong file.
 A file of 50MB or less goes up in one call. Anything larger needs a resumable upload session,
 which tops out at a 500GB file. That ceiling is VFS's own. Direct Upload, which puts one file
 straight onto a document or record, stops at 4GB instead, so a file between the two sizes can be
-staged but cannot be attached directly. Part sizes, part counts, session expiry, and how many
-sessions a Vault allows at once come from the docs MCP
-(`mcp__vault-docs-mcp__search_documentation`, source `vault_api_reference`, "resumable upload
-sessions").
+staged but cannot be attached directly.
+
+A Vault allows up to 50 active upload sessions at once. A session expires 72 hours after it is
+created, and Vault purges the parts of one that expires before its commit. Parts run 5 to 50MB
+by default, and the Upload to a Session page allows up to 52MB. Every part is the same size
+except the last, which is the only one allowed under 5MB, and a session takes up to 9616 parts.
+The docs say these limits can vary by Vault, so quote them with the page named, from the docs
+MCP (`mcp__vault-docs-mcp__search_documentation`, source `vault_api_reference`, "resumable
+upload sessions").
 
 ## Endpoints
 

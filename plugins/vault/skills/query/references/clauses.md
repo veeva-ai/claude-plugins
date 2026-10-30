@@ -61,7 +61,7 @@ Use `FIND` only for search intent, keyword/phrase/document-content search.
 SELECT id, name__v
 FROM documents
 FIND ('annual report' SCOPE ALL)
-WHERE status__v = 'approved__c'
+WHERE TONAME(status__v) = 'approved__c'
 ```
 
 ## ORDER BY

@@ -17,7 +17,7 @@ documents with VQL.
 - The Vault CLI (`vault`) is the preferred way in: it signs in, stores credentials, and runs
   queries, MDL, and configuration pulls and pushes. It is not required. Without it the skills
   call the Vault API directly, using an API access token you export in your own terminal.
-  `reference/vault-cli.md` lists what the skills assume about it. Minimum version is 26.2.4 build 631. On
+  `reference/vault-cli.md` lists what the skills assume about it. Minimum version is 26.2.4. On
   Windows, in PowerShell, run `irm https://download.veevavault.dev/cli/install.ps1 | iex`; it
   installs to `%LOCALAPPDATA%\VeevaCLI`, adds it to your user PATH, and the window you installed
   from can run it right away; other open terminals, and a Claude Code session already running,
@@ -37,7 +37,7 @@ documents with VQL.
   an API access token is the simplest credential; the login skill says where to generate one.
 - On Windows, Git Bash or WSL for the API calls the skills make with `curl`. The Vault CLI
   itself runs in any shell.
-- Supports Vault CLI 26.2.4 (build 631) and later. The CLI is optional; Setup above has the install line.
+- Supports Vault CLI 26.2.4 and later. The CLI is optional; Setup above has the install line.
 - query never prompts for credentials. It relies on the active sign-in.
 
 ## Handoffs to the other plugins

@@ -17,9 +17,10 @@ configured reads from here before it calls the API.
   javasdk/                       Java SDK source by package path, one file per class
   custom_pages/                  Custom Page distributions and code
   .vault/
-    state.json                   md5 per tracked file plus provenance (below)
     dependencies.json            { "<Type>.<name>": { "depends_on": ["<Type>.<name>", ...] } }
                                  rebuilt on every pull
+    relationships.json           { "<Type>.<name>": { "label", "relationships": [ { "blocking_type",
+                                 "target_type", "target_name", ... } ] } }
     metadata/<ComponentType>.json
                                  type schema: attributes, subcomponents, datatypes
   .vdxignore                     globs the CLI leaves alone on pull and push
@@ -33,18 +34,12 @@ A list attribute keeps the form the pull wrote it in.
 The CLI writes `.vault/metadata/<ComponentType>.json` only for a type with at least one component, and
 none for a schemaless type; a type with no components has no directory under `components/`.
 
-## state.json
+## Which Vault it came from
 
-A flat JSON object, and a large one: a full pull tracks tens of thousands of files. Search it
-for the key you need; do not read it whole. Every key that does not start with `__` is a
-workspace-relative path mapped to the lowercase hex MD5 of that file's bytes. Reserved keys:
-
-| Key | Meaning |
-|---|---|
-| `__version__` | The CLI version that last wrote the workspace. |
-| `__source_env__` | The environment label the pull used. |
-| `__source_dns__` | The Vault DNS the pull came from. The guard for "wrong Vault in this directory". |
-| `__pull_mode__` | `advanced` for a CLI pull. |
+Nothing the pull writes names the source Vault or the pull time. The DNS lives in the first
+commit's message (SKILL.md Step 2), and the last pull time is the modified time of
+`.vault/dependencies.json`. A workspace without that commit came from somewhere else, so ask the
+user which Vault it was pulled from.
 
 ## What the pull covers
 

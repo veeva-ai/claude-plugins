@@ -68,6 +68,8 @@ import com.veeva.vault.sdk.api.data.RecordTrigger;
 import com.veeva.vault.sdk.api.data.RecordTriggerContext;
 import com.veeva.vault.sdk.api.data.RecordTriggerInfo;
 
+import java.time.LocalDate;
+
 @RecordTriggerInfo(object = "product__v", events = {RecordEvent.BEFORE_INSERT, RecordEvent.BEFORE_UPDATE})
 public class ProductFieldDefaults implements RecordTrigger {
 
@@ -75,7 +77,7 @@ public class ProductFieldDefaults implements RecordTrigger {
         // Build any lookups/batched service calls ONCE, outside this loop, before iterating.
         for (RecordChange change : context.getRecordChanges()) {
             Record newRecord = change.getNew();
-            String expectedDate = newRecord.getValue("expected_date__c", ValueType.STRING);
+            LocalDate expectedDate = newRecord.getValue("expected_date__c", ValueType.DATE);
             if (expectedDate == null) {
                 // business logic here
             }
@@ -123,9 +125,9 @@ data there.
 
 ### Field default (BEFORE event)
 ```java
-String rating = newRecord.getValue("rating__v", ValueType.STRING);
+List<String> rating = newRecord.getValue("rating__v", ValueType.PICKLIST_VALUES);
 if (rating == null || rating.isEmpty()) {
-    newRecord.setValue("rating__v", "beginner__v");
+    newRecord.setValue("rating__v", VaultCollections.asList("beginner__v"));
 }
 ```
 
@@ -153,7 +155,7 @@ for (RecordChange change : context.getRecordChanges()) {
     Record study = change.getNew();
     Record arm = recordService.newRecord("study_arm__v");
     arm.setValue("study__v", study.getValue("id", ValueType.STRING));
-    arm.setValue("status__v", "active__v");
+    arm.setValue("status__v", VaultCollections.asList("active__v"));
     newRecords.add(arm);
 }
 
@@ -211,8 +213,9 @@ nested level share the same request-wide time and memory budget; see the Limits 
 ## Loads and migration mode
 
 If the business logic implies this trigger should, or must not, run during a bulk load, say so in
-the summary. The mechanics (Record Migration Mode does not suppress triggers; only
-`X-VaultAPI-NoTriggers` does; `RecordTriggerContext#isMigrationModeEnabled()`) are in
+the summary. The mechanics (Record Migration Mode does not suppress triggers on its own;
+`X-VaultAPI-NoTriggers` does, and only with Record Migration Mode on;
+`RecordTriggerContext#isMigrationModeEnabled()`) are in
 `references/platform-constraints.md` § Record Migration Mode and No Triggers.
 
 ## Before handing the file back

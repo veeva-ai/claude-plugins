@@ -5,9 +5,6 @@ with the real object, field, or value. Every example assumes the field API names
 correct; if they weren't handed to you directly, confirm them first (SKILL.md Step 2) rather
 than guessing at the `__v`/`__c`/`__sys` suffix.
 
-Different from `good-vs-bad-patterns.md` in vqlB, which is specifically about anti-pattern
-corrections, these are complete, realistic queries meant as adaptable starting points.
-
 ## Canonical relationship shapes
 
 The `team__v` / `players__vr` pair below is an illustrative shape, not a standard Vault object.

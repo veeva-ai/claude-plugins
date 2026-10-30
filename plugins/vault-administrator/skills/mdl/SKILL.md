@@ -58,7 +58,7 @@ identical once paraphrased.
 
 Look on disk first. If the config skill has pulled this Vault, the component is already
 at `components/{ComponentType}/{name}/{name}.mdl` in that workspace (the directory holding
-`.vault/state.json`: the directory the user named, the current project, or its `vault-config/`), and the type's
+`.vault/dependencies.json`: the directory the user named, the current project, or its `vault-config/`), and the type's
 attribute set is in `.vault/metadata/{ComponentType}.json`. An object's types are their own
 components, not part of the object's MDL: `allow_types(true)` on an object means look under
 `components/Objecttype/{object}.{type}/` for each type before deciding whether a field change
@@ -270,9 +270,9 @@ Pick the path by what the change is:
 
 ### With the CLI, in a pulled workspace
 
-When the user names the Vault by a nickname ("my QA sandbox", "DEV"), ask for its DNS and pass
-it with `--dns`; no CLI command lists the stored Vaults to match a nickname against. Never offer a
-different Vault as the default answer.
+When the user names the Vault by a nickname ("my QA sandbox", "DEV"), ask for its DNS, get the
+CLI onto that Vault the way the login skill's Step 2 says, and prove it; never match a nickname
+against what the CLI has stored. Never offer a different Vault as the default answer.
 
 If this Vault has no workspace yet, make one the way the config skill's Step 2 says: in the
 directory the user names, otherwise `vault-config/` under the current project, with `git init`
@@ -281,14 +281,16 @@ and a first commit right after the pull. Not under the home directory unless the
 Pull, author the files, preview the push, push, preview again:
 
 ```bash
+MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '   # must show mycompany-qa.veevavault.com
 git -C <workspace> add -A && git -C <workspace> commit -qm "before pull"
-vault config pull --dns mycompany-qa.veevavault.com --dir <workspace>
+vault config pull --dir <workspace>
 git -C <workspace> add -A && git -C <workspace> commit -qm "after pull"   # a new workspace's first commit
 # write or edit the component files
-vault config push --dns mycompany-qa.veevavault.com --dir <workspace> --dry-run     # preview: what a push would deploy
+vault config push --dir <workspace> --dry-run     # preview: what a push would deploy
 git -C <workspace> add -A && git -C <workspace> commit -qm "before push"
-vault config push --dns mycompany-qa.veevavault.com --dir <workspace>
-vault config push --dns mycompany-qa.veevavault.com --dir <workspace> --dry-run     # expect no changes
+MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '   # still mycompany-qa, right before the write
+vault config push --dir <workspace>
+vault config push --dir <workspace> --dry-run     # expect no changes
 ```
 
 The pull comes first every time. The preview compares the files with the Vault as it is now, so
@@ -301,7 +303,8 @@ After upgrading the CLI, pull again before the first push. A push from a workspa
 with an older CLI has proposed deleting components the workspace did not hold.
 
 If a push ends with errors or deploys only some components, stop there. Commit, read back what
-landed, and tell the user what landed and what failed before you pull or push again.
+landed, and tell the user what landed and what failed before you pull or push again. Quote the CLI's own
+error line as the report, and do not offer causes outside the CLI and Vault.
 If `${CLAUDE_PLUGIN_ROOT}/reference/cli-interim.md` exists, it has the recovery for components
 that depend on each other. When a recovery's pull stops before removing new files you have not
 pushed, rule 5 in
@@ -415,7 +418,8 @@ than starting over.
 ### With the CLI, one statement at a time
 
 ```bash
-vault mdl "ALTER Picklist color__c ( ADD Picklistentry teal__c ( value('Teal'), order(4), active(true) ) );" --dns mycompany-qa.veevavault.com
+MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '   # must show mycompany-qa.veevavault.com
+vault mdl "ALTER Picklist color__c ( ADD Picklistentry teal__c ( value('Teal'), order(4), active(true) ) );"
 ```
 
 One statement per call, as a single argument. MDL strings use single quotes, so wrap the

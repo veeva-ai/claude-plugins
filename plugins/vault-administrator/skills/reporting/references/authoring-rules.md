@@ -8,8 +8,8 @@ paths, and check the result against these tables before the plan.
 | Component | Verb to use | Notes |
 |---|---|---|
 | Reporttype | `RECREATE` | `CREATE` and `ALTER` also work. Every `ALTER` sets `active` to false, even one that only changes the description, so include `active(true)` and compare `active` on readback. An `ALTER` that changes the relationships while any report uses the type is refused with `GEN-FALT-ONA-1017`, "Component is in-use" |
-| Report | `RECREATE` | `CREATE` and `ALTER` are rejected with the generic error below, whatever the docs say. A change is another `RECREATE`, a `DROP` or a `RENAME`. The statement carries `class('Standard')` |
-| Dashboard | `RECREATE` | `CREATE` is rejected with the generic error. A second `RECREATE` replaces the whole markup. Charts left out are removed, and a chart whose `name` matches keeps its identity |
+| Report | `RECREATE` | `CREATE` and `ALTER` return the generic error below, and `ALTER` is not a supported operation on a Report. A change is another `RECREATE`, a `DROP` or a `RENAME`. The statement carries `class('Standard')` |
+| Dashboard | `RECREATE` | `CREATE` returns the generic error. A second `RECREATE` replaces the whole markup. Charts left out are removed, and a chart whose `name` matches keeps its identity |
 
 `RECREATE` creates the component when the name is new and replaces it when the name exists.
 
@@ -147,7 +147,7 @@ Children are `chart` and `spacer`. Attributes carry no prefix.
 | Error | Means | Check |
 |---|---|---|
 | `GEN-EREC-UE-801` (the middle letters change with the verb) | Generic. It names no attribute | In order: a bad enum value (`action`, `type`, `format`, `stacking`, a chart type), a missing section (`where`, `group`, `order`, `select`), a missing chart attribute, then the chart count against the layout |
-| `GEN-ECRE-UE-801` on `CREATE Report` or `CREATE Dashboard` | The verb is not handled | Use `RECREATE` |
+| `GEN-ECRE-UE-801` on `CREATE Report` or `CREATE Dashboard` | The verb was not handled | Use `RECREATE` |
 | `GEN-FREC-ONA-1232` | A matrix report has one group | Add a second `groupItem` |
 | `GEN-FREC-II-1035` | A path, key or value does not resolve | The text names it. For a dashboard it is the grouping key not in the report |
 | `GEN-FREC-II-1004` | A chart's report is missing | Run the report first |

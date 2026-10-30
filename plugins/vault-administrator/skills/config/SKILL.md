@@ -49,22 +49,24 @@ only on the user's yes. If they say no or it fails, Step 5, and do not raise it 
 
 ## Step 2: Find or create the workspace
 
-A workspace is any directory with `.vault/state.json`. Look in the directory the user names,
-then the current project (its root or its `vault-config/`), and nowhere else. Workspaces under
-the home directory or in other projects may belong to other Vaults; use one only when the user
-names it. Before trusting what is there, check which Vault it came from:
+A workspace is any directory with `.vault/dependencies.json`, which every pull writes. Look in
+the directory the user names, then the current project (its root or its `vault-config/`), and
+nowhere else. Workspaces under the home directory or in other projects may belong to other
+Vaults; use one only when the user names it. Before trusting what is there, check which Vault it
+came from. The pull does not record that anywhere in the workspace, so the first commit does
+(below):
 
 ```bash
-grep -o '"__source_dns__": *"[^"]*"' <workspace>/.vault/state.json
+git -C <workspace> log --reverse --format=%s | head -n 1
 ```
 
-`state.json` holds a hash for every tracked file and runs to megabytes, so search it and
-never read it whole. A workspace pulled from some other Vault does not become right by
-refreshing it; use a different directory.
+No git history, or a first commit that names no DNS, means ask the user which Vault the
+directory was pulled from; never take it from the folder name. A workspace pulled from some other
+Vault does not become right by refreshing it; use a different directory.
 
 None found: pull one. When the user names a Vault ("my QA sandbox", "DEV"), resolve the name
-the way login does: ask for the DNS when they gave only a name, pass it with `--dns`, and say
-which DNS you used. A guessed label fails, a
+the way login does: ask for the DNS when they gave only a name, get the CLI onto that Vault and
+prove it with login's proof line (the first line below), and say which DNS you used. A guessed label fails, a
 guessed DNS can land on the wrong Vault, and another signed-in Vault is not a stand-in for it.
 
 The new workspace goes in the directory the user names. If they name none, it goes in
@@ -74,8 +76,9 @@ for that. If `vault-config/` already holds a workspace from another Vault, ask w
 one should go. Then:
 
 ```bash
-vault config pull --dns mycompany-qa.veevavault.com --dir vault-config
-git -C vault-config init -q && git -C vault-config add -A && git -C vault-config commit -qm "first pull"
+MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '   # must show mycompany-qa.veevavault.com
+vault config pull --dir vault-config
+git -C vault-config init -q && git -C vault-config add -A && git -C vault-config commit -qm "first pull from mycompany-qa.veevavault.com"
 ```
 
 A pull is a read against Vault. It runs on any Vault, production included, and writes only
@@ -97,7 +100,8 @@ says why.
 Before answering from an existing workspace:
 
 ```bash
-vault config pull --dry-run --dns mycompany-qa.veevavault.com --dir <workspace>
+MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '   # must show the workspace's source DNS
+vault config pull --dry-run --dir <workspace>
 ```
 
 A dry run against the Vault the workspace was pulled from is the freshness check. It writes
@@ -229,4 +233,5 @@ references show.
 - Any other error from the CLI: check the known limits in `vault-cli.md`. If it is not
   there, capture the command, the output, `vault version`, and the Vault release for the
   user to pass to the CLI team, then answer the question through Step 5 so the task is not
-  blocked.
+  blocked. Quote the CLI's own error line as the report, and do not offer causes outside the
+  CLI and Vault.

@@ -43,8 +43,8 @@ approved load or extract (Step 6). Out of bounds, with the owner:
 - Signing in, credentials, and "which Vault is this": login. That includes a failure
   that surfaces on an API call but is really about the session, `INVALID_SESSION_ID` being the
   usual one: read the error here, hand the fix back there.
-- Which Vault the CLI points at, and the Vaults in a domain: login owns that, through the
-  domain call in its Step 2.
+- Which Vault the CLI is on, and the Vaults in a domain: login owns that, through the
+  proof line and the domain call in its Step 2.
 
 ## Handoffs
 
@@ -55,8 +55,8 @@ to run; do not ask for credentials in chat.
 ## Step 1: Sign in and state the target
 
 Sign-in belongs to the vault plugin's login skill. With the Vault CLI, call Vault through
-`vault api`: it sends every call under the signed-in session, `--dns <dns>` names the Vault,
-and no shell variable ever holds a credential. Do not read the credential out of the
+`vault api`: it sends every call under the signed-in session to the CLI's current Vault
+(login's Step 2 proves which one), and no shell variable ever holds a credential. Do not read the credential out of the
 CLI's store and build a curl call around it.
 
 Without the CLI, the call needs two shell variables, `AUTH` and `VAULT_DNS`, set at the top of
@@ -98,7 +98,7 @@ for: workflows and tasks, picklists, AI Agent actions, audit, binders, security 
 rest of the reference. When the CLI is not installed, the session from Step 1 carries every
 family, and the same call drafted with placeholders is what an integration builder takes away.
 
-`vault api [--dns <dns>] [-X <method>] [-H "Key: Value"] [-d <body> | -F "k=v"] [-o <file>] <path>`.
+`vault api [-X <method>] [-H "Key: Value"] [-d <body> | -F "k=v"] [-o <file>] <path>`.
 The path starts with `/` and gets `/api/<version>` put in front; `--api-version none` leaves the
 prefix off, for the unversioned MDL endpoints. `-d` sends its value as is, so set the
 `Content-Type` yourself with `-H`, and `-d @<file>` reads the body from a file. A response that is
@@ -131,10 +131,11 @@ curl -s "https://$VAULT_DNS/api/v26.2/query" \
 `--data-urlencode`, never `-d`, for anything carrying query text. To count, run the query with
 `PAGESIZE 0` and read `responseDetails.total`; VQL has no `COUNT()`.
 
-The same call through the CLI, with the Vault named and the output kept in a file:
+The same call through the CLI, on the Vault login's proof line shows, with the output kept in a
+file:
 
 ```bash
-vault api --dns <dns> --api-version none -H "Accept: text/plain" -o out.mdl /api/mdl/components/<Component>.<name>
+vault api --api-version none -H "Accept: text/plain" -o out.mdl /api/mdl/components/<Component>.<name>
 ```
 
 Retrieve a component as MDL with curl, for a session without the CLI (a read):
@@ -155,7 +156,8 @@ that it doesn't, check the path first.
 - `errors[].type` is the thing to match on. `INVALID_SESSION_ID` means the session or token,
   not your call: hand it back to login's Step 6.
 - Capture `X-VaultAPI-ExecutionId` from the response headers whenever a call fails and Support
-  might get involved.
+  might get involved. Quote the response's `errors[]` text as the report, and do not offer
+  causes outside Vault and the call.
 - Job endpoints return a `job_id`; poll `GET /api/{version}/services/jobs/{job_id}` no more
   than every ten seconds, and read the job's own status, not the poll's `SUCCESS`.
 - ~ Endpoints that can return user- or LLM-generated text (AI Agent action outputs, rich-text
@@ -233,15 +235,16 @@ raw export instead, map it before the plan, with nothing written to the Vault:
 
    ```bash
    export MSYS_NO_PATHCONV=1
-   vault api --dns <dns> -X POST -H "Content-Type: application/json" -d @load.json /services/loader/load
-   vault api --dns <dns> /services/jobs/<job_id>
+   vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '   # must show the target DNS
+   vault api -X POST -H "Content-Type: application/json" -d @load.json /services/loader/load
+   vault api /services/jobs/<job_id>
    ```
 
    `load.json` is an array of tasks, and its shape, migration flags included, is in the Vault
    Loader section of `references/endpoint-family-map.md`. Build it from there, not from a docs
    search.
 5. When the job finishes, pull the success and failure logs for every task
-   (`vault api --dns <dns> -o failure-<task_id>.csv /services/loader/<job_id>/tasks/<task_id>/failurelog`,
+   (`vault api -o failure-<task_id>.csv /services/loader/<job_id>/tasks/<task_id>/failurelog`,
    and `successlog` the same way) and report the failed rows with their errors. Read the failure log whatever status the job finished with, since a
    job that ends `SUCCESS` can still carry failed rows. A task with no failures answers the
    failure-log call with `MALFORMED_URL` and a message that it was successful without any failure

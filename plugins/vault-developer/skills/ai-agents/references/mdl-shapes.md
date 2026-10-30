@@ -401,9 +401,9 @@ Curly-brace tokens in `instructions` are read as field references, so a placehol
 reference valid Object or Document fields"). Describe the tool's output in prose, and use a brace
 token only for a real field of the agent's object or doctype.
 
-An instruction that asks for a count or a total in the answer needs a tool that returns that number, such
-as a VQL aggregate (`SELECT COUNT(id), SUM(amount__c) FROM expense__c WHERE status__c = 'unsubmitted__c'`)
-or a handler that computes it. Otherwise the model adds up the rows itself, and it can
+An instruction that asks for a count or a total in the answer needs a tool that returns that number,
+which means a handler that computes it: VQL has no `COUNT` or `SUM` in a `SELECT`, so a query tool
+hands back rows, not a total. Otherwise the model adds up the rows itself, and it can
 be wrong on a table it listed correctly. If no tool returns the figure, leave the count or total out of the
 instructions and let the table speak for itself.
 

@@ -31,7 +31,7 @@ non-production, and are handed to you as drafted commands otherwise.
   where to generate an API access token.
 - On Windows, PowerShell or Git Bash. The skills ask which shell you use before handing over
   a command.
-- Supports Vault CLI 26.2.4 (build 631) and later. The CLI is optional; the `vault` plugin README has the
+- Supports Vault CLI 26.2.4 and later. The CLI is optional; the `vault` plugin README has the
   install line.
 - A sandbox to try anything in before it touches a shared Vault.
 

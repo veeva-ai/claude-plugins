@@ -124,8 +124,10 @@ placeholder.
   listing, which is the only signal the API gives back (the reference file's "Delta Sync"
   section), and are not expecting a content-hash diff. The API cannot produce one after the fact.
 - **For proof of upload**: confirm the output format (CSV or Markdown table by default) and warn
-  before generating that resumable-uploaded files can only be checksum-verified in transit, never
-  afterward. See the reference file's "Proof of Upload" section.
+  before generating that the API checksums a resumable-uploaded file only part by part, during
+  the upload. Proving the whole file afterward means downloading it back in `Range` windows and
+  hashing it locally; ask whether they want that. See the reference file's "Proof of Upload"
+  section.
 - **Whether this upload feeds a bulk load** (Create Multiple Documents, object record attachments,
   renditions, a Vault Loader multi-file load). If it does, every staged path becomes a `file`
   column value downstream, in the same Admin or non-Admin path form that put it there.
@@ -166,7 +168,8 @@ or curl command(s) for the job(s) identified in Step 1, using the gathered input
 few things apply across every job:
 
 - Use the exact path form for the user's Admin/non-Admin status (Step 2). Get this wrong and the
-  command 404s, which is far and away the most common way a drafted VFS command fails.
+  command 404s, which is far and away the most common way a drafted VFS command fails. When a command fails, quote the CLI's own output
+  as the report, and do not offer causes outside the CLI and Vault.
 - For any file over 50MB, bulk or single, draft the whole three-call resumable sequence (create
   session -> upload part(s) -> commit) rather than just the first call. A partial draft leaves the
   file half-staged. A folder-tree script branches per file on size; it does not pick one method
@@ -180,9 +183,9 @@ few things apply across every job:
   emit transfer commands for files that fail the size/timestamp match. State the comparison
   logic used in the script's own comments so it's auditable later.
 - For a proof-of-upload report, generate the local manifest step, the inline per-file
-  checksum-on-upload check (single-shot only), the post-transfer listing comparison, and the
-  report-writing step, in that order: see the reference file for exactly which columns are
-  provable and which must be marked not verifiable.
+  checksum-on-upload check (single-shot only), the post-transfer listing comparison, the
+  re-download hash for any file the user wants proven after the fact, and the report-writing
+  step, in that order: see the reference file for exactly what each column proves.
 - For a delete on a folder, ask whether they want `recursive=true`. Without it, deleting a
   non-empty folder does nothing useful.
 - If the target path is the Inbox directory, warn about the Staged-document side effect that

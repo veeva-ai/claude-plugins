@@ -125,8 +125,8 @@ not left waiting on the response.
 Record Migration Mode, set via `X-VaultAPI-MigrationMode` or Vault Loader's Record Migration Mode
 option, bypasses entry criteria, entry actions, validation rules, and reference constraints. It
 does **not**, by itself, stop record triggers from firing. Suppressing them requires the separate
-`X-VaultAPI-NoTriggers` header (usable together with Record Migration Mode), which bypasses all
-system, standard, and custom triggers. Inside the trigger, `RecordTriggerContext#isMigrationModeEnabled()`
+`X-VaultAPI-NoTriggers` header, which takes effect only with Record Migration Mode on and then
+bypasses all system, standard, and custom triggers. Inside the trigger, `RecordTriggerContext#isMigrationModeEnabled()`
 reports whether the context that invoked it was in Record Migration Mode, which is useful for
 branching logic that should behave differently during a migration load, but that check tells you
 nothing about whether the trigger fired at all in the first place.

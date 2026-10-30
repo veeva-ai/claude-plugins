@@ -20,7 +20,7 @@ right hand-off only for the one-off count the reporting skill uses to verify a b
 
 ## The target Vault
 
-The Vault a skill works on is the one the user names. The CLI's active environment, a stored
+The Vault a skill works on is the one the user names. The CLI's current Vault, a stored
 credential, or a workspace folder say what can be reached, not what should be. If the user has
 not named the target, ask before any read that returns data from it and before any write.
 

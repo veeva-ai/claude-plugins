@@ -15,9 +15,9 @@ always runs and has to be manually wrapped in an `isXEnabled()` check to get the
 ```java
 import com.veeva.vault.sdk.api.core.LogService;
 
-private static final LogService LOG = ServiceLocator.locate(LogService.class);
+LogService logService = ServiceLocator.locate(LogService.class);
 
-LOG.debug("Skipping record {}: {} already set", recordId, fieldName);
+logService.debug("Skipping record {}: {} already set", recordId, fieldName);
 ```
 
 The `messageTemplate` string takes `{}` placeholders; the number of `{}` instances must match the

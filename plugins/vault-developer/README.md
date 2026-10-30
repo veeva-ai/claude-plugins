@@ -35,7 +35,7 @@ non-production.
   (`~/.veeva-vault/credentials`, which is `%USERPROFILE%\.veeva-vault\credentials` on Windows).
 - On Windows, Git Bash or WSL for the bash blocks `api` runs. They do not run in PowerShell
   or cmd.
-- Supports Vault CLI 26.2.4 (build 631) and later. The CLI is optional; the `vault` plugin README has the
+- Supports Vault CLI 26.2.4 and later. The CLI is optional; the `vault` plugin README has the
   install line.
 - A Java project to put generated `.java` files in; the skills write source, you compile it, and
   `vault config push` deploys it within one Vault.

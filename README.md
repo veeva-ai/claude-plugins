@@ -39,13 +39,20 @@ if that fits your work better. Start a new Claude Code session afterwards so the
 
 ## Update
 
-Plugins update when you ask, or on their own if you turn on auto-update for the marketplace in
-`/plugin`:
+Auto-update is off by default for this marketplace. To turn it on, run `/plugin`, open the
+Marketplaces tab, pick `veeva-claude-plugins`, and choose Enable auto-update. Claude Code then
+refreshes the marketplace after your first message of a session and updates the plugins you
+installed; the new version loads in your next session. A plugin updates when its version
+changes, and every release changes it. To update by hand:
 
-```
+```bash
 claude plugin marketplace update veeva-claude-plugins
 claude plugin update vault-developer@veeva-claude-plugins
 ```
+
+`claude plugin update` updates the one plugin you name, so run the second line once per plugin
+you have, or choose Update marketplace for it on the Marketplaces tab in `/plugin`. Organizations can switch auto-update on for everyone with
+`autoUpdate: true` on the marketplace entry under `extraKnownMarketplaces` in managed settings.
 
 Each release is tagged with its version, for example `26.42.0`; the release notes on the portal
 say what changed.
@@ -53,9 +60,8 @@ say what changed.
 ## Without git or a current Claude Code
 
 The same release ships as `claude-plugins.zip` on the
-[GitHub release](https://github.com/veeva-ai/claude-plugins/releases/latest), with a `.sha256`
-beside it. Unzip
-it into a folder you will keep, so that the folder contains this README, then:
+[GitHub releases page](https://github.com/veeva-ai/claude-plugins/releases), with a `.sha256`
+beside it. Unzip it into a folder you will keep, so that the folder contains this README, then:
 
 ```
 claude plugin marketplace add "<path to that folder>"
@@ -67,7 +73,7 @@ To update, unzip the next release over the same folder; the next session loads i
 ## Before you start
 
 - A Vault user with API access. The `vault` plugin's login skill walks you through signing in.
-- The Vault CLI is optional and recommended; the plugins support 26.2.4 and later. The
+- The Vault CLI is optional and recommended; the plugins support 26.2.4 or later. The
   [vault plugin README](plugins/vault/README.md) has the install line for Windows, macOS and
   Linux.
 - Each plugin registers the public Vault developer docs MCP server at `docs.veevavault.dev`,

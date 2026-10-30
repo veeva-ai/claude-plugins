@@ -139,7 +139,8 @@ SKILL.md Step 6 has the approval and reporting rules for both.
   Vault Owner Actions permission on the loading user. Record Migration Mode lets records load
   into non-initial lifecycle states and lets custom and system fields be set, the record id
   included, and sends no notifications. `notriggers` bypasses all system, standard, and custom
-  Java SDK triggers. Document Migration Mode loosens some of the constraints Vault normally
+  Java SDK triggers, and only on a task that also sets Record or Document Migration Mode; on its
+  own it changes nothing. Document Migration Mode loosens some of the constraints Vault normally
   enforces on a document load and sends no notifications.
 - **Rows in one file don't load in order.** Loader splits the file into chunks of 500 and runs
   them in parallel; the logs still map back to the input rows.

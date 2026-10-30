@@ -160,7 +160,8 @@ Before reporting, run each `SELECT` from the controller once, exactly as written
 against the target Vault, with real values in place of any token:
 
 ```bash
-vault query "<VQL>" --dns <dns>
+MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '   # must show the target DNS
+vault query "<VQL>"
 ```
 
 It should come back with rows. If it errors, fix it through the query skill, update the

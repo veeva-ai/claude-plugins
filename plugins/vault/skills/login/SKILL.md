@@ -3,9 +3,10 @@ name: login
 version: "0.1.0"
 description: >
   For an admin, a developer, or another skill that needs a signed-in Vault. Use it to sign in
-  to a named Vault with an API access token, a username and password, or an SSO token, stay
-  signed in across tool calls, point every command at one Vault by its DNS, and classify the
-  target as production or sandbox before anything writes.
+  to a named Vault with SSO through the browser, a username and password, or an API access
+  token, stay signed in across tool calls, switch Vaults by DNS and prove which one the CLI is
+  on, classify the target as production or sandbox before anything writes, and say what kind
+  of Vault it is ("is this a Quality Vault", "what API version does this Vault support").
   Also use it when a call fails with a login, token, or credentials error.
 ---
 
@@ -30,7 +31,7 @@ Signing in, staying signed in, signing out, and classifying the target Vault. Ou
   vault-developer.
 - Managing users and security policies: an admin task in the Vault UI, or api for the
   endpoint.
-- Driving a browser or an OAuth flow. `vault login` opens the browser for SSO, and the user
+- Driving a browser or an OAuth flow. `vault login` opens a browser sign-in, and the user
   is the one who runs it.
 - Finding an endpoint. Endpoints come from the docs MCP
   (`mcp__vault-docs-mcp__search_documentation`, source `vault_api_reference`) or from
@@ -80,8 +81,9 @@ every write:
 MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '
 ```
 
-The host in `> GET https://<dns>/...` is where the next command lands; no line at all means
-the CLI has no sign-in to use. When the host is not the Vault the user named, get the CLI there
+The host in `> GET https://<dns>/...` is where the next command lands. No line at all means no
+request went out. The one re-run allowed is that same call once without the `grep`, to read
+the CLI's reason before you decide the user is not signed in. When the host is not the Vault the user named, get the CLI there
 first: `vault switch --dns <dns>`, or, when the installed CLI
 has no `switch` or refuses it (a token sign-in, or a Vault the session cannot reach), a new
 sign-in as below. Prove it again after either.
@@ -117,8 +119,8 @@ by name and type. Use them to narrow down which Vault the user means, then ask f
 
 Not signed in to that Vault, or the session has expired (the proof line prints nothing, or a
 command ends in a sign-in error): ask how they sign in to that Vault before
-handing over a command. The bare `vault login` assumes SSO, and for an account with a Vault
-password and no identity provider the browser flow just ends in "SSO login cancelled". One
+handing over a command. The bare `vault login` is a browser sign-in that assumes SSO, and for
+an account with a Vault password and no identity provider it just ends in "SSO login cancelled". One
 question settles it: SSO, a Vault username and password, or an API access token they already
 have. Then hand over the line that fits and wait for them to run it in their own terminal.
 
@@ -147,7 +149,11 @@ the user to run. Never run them yourself, and never ask for the value.
 
 A password or SSO sign-in stores a session, and a session idles out, often in the middle of a
 long task: the next command fails with `INVALID_SESSION_ID` and the user has to sign in again.
-The CLI keeps no password, so it cannot do that for them. Right after a password or SSO
+The CLI keeps no password, so it cannot do that for them. How long a session may idle is the
+Session Duration under Admin > Settings > Domain Settings, from 10 minutes to 8 hours, unless
+the user's security policy sets Logout user after inactivity under Admin > Settings > Security
+Policies, which wins over the domain value. Changing either takes a Domain Admin, and every
+session ends at 48 hours however active it is. Right after a password or SSO
 sign-in, offer an API access token so the rest of the work does not idle out. The user creates
 it in the API Access Tokens section of their user profile in Vault, which shows the value once,
 and signs in with it in their own terminal:
@@ -234,7 +240,7 @@ entry can be the beta of the next release, so the release is the last entry the 
 knows as general; on a Vault that lists v26.2 and v26.3, say v26.2 and mention v26.3 exists.
 
 Say all of it on the one line this skill already states before a write: target DNS (the host
-the proof line showed), classification, family, release. "DEV (mycompany-dev.veevavault.com), Sandbox, Platform, API v26.2"
+the proof line showed), classification, family, release. `DEV (mycompany-dev.veevavault.com), Sandbox, Platform, API v<version>`
 and then never ask again in the session. The family and the applications do not change, so
 keep them in a note per DNS for next time; the classification is read live before every
 write regardless, and the version is re-read when a call is rejected for it. If the domain
@@ -263,15 +269,18 @@ them to set two variables in the terminal they launch Claude Code from, not in c
 
 ```bash
 export VAULT_DNS=mycompany-qa.veevavault.com
-export VAULT_ACCESS_TOKEN=veeva-vault-...
+read -rs VAULT_ACCESS_TOKEN && export VAULT_ACCESS_TOKEN
 ```
 
 In PowerShell:
 
 ```powershell
 $env:VAULT_DNS = "mycompany-qa.veevavault.com"
-$env:VAULT_ACCESS_TOKEN = "veeva-vault-..."
+$env:VAULT_ACCESS_TOKEN = [Net.NetworkCredential]::new("", (Read-Host -AsSecureString)).Password
 ```
+
+The second line waits for the token with hidden typing, so the value stays out of chat and out
+of their shell history; they paste it and press Enter.
 
 Then `AUTH="Bearer $VAULT_ACCESS_TOKEN"` and `export MSYS_NO_PATHCONV=1` at the top of each
 block, and Step 4 applies unchanged. An API access token is the credential to
@@ -295,8 +304,12 @@ counted per username and Vault DNS over a one-minute window.
   to a different credential than the one the user chose.
 - Repeated auth failures then a lockout-shaped error: the auth burst limit. Wait it out rather
   than retrying.
-- A CLI command that exits with a sign-in error while the user says they are signed in: run
-  the proof line from Step 2 and compare its host with the DNS they meant.
+- Exit 4 with a message that starts `this shell hasn't confirmed` or `no shell to confirm`, or
+  `not logged in` after the user has signed in: nothing reached the Vault. Show the user the
+  CLI's message as it printed it and stop. The user decides what happens next; do not retry the
+  command, or act on what the message suggests, on your own.
+- Any other sign-in error from a CLI command while the user says they are signed in: run the
+  proof line from Step 2 and compare its host with the DNS they meant.
 
 `references/auth-and-errors.md` has the credential types, session duration, the response
 envelope, rate limits, and the tracking headers to capture for Support.

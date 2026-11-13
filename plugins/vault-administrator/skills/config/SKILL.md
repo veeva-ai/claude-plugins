@@ -24,8 +24,7 @@ before the first CLI command in a task.
 Pulling configuration and answering questions about it from the workspace. Out of bounds:
 
 - Changing configuration. Authoring or running Metadata Definition Language (MDL) is the mdl
-  skill, and so is the edit and push loop in a workspace. Packaging is a package built by hand or
-  in the Vault UI (Admin > Deployment > Outbound and Inbound Packages).
+  skill, and so is the edit and push loop in a workspace. Packaging is the vpk skill.
 - Record counts and document questions go to the vault plugin's query skill.
 - Admin > Settings. They are not components, so they are not in the pull. Point at Admin >
   Settings in the UI and say so.
@@ -49,7 +48,7 @@ only on the user's yes. If they say no or it fails, Step 5, and do not raise it 
 
 ## Step 2: Find or create the workspace
 
-A workspace is any directory with `.vault/dependencies.json`, which every pull writes. Look in
+A workspace is any directory with `.vault/relationships.json` or `.vault/dependencies.json`. Look in
 the directory the user names, then the current project (its root or its `vault-config/`), and
 nowhere else. Workspaces under the home directory or in other projects may belong to other
 Vaults; use one only when the user names it. Before trusting what is there, check which Vault it
@@ -57,7 +56,7 @@ came from. The pull does not record that anywhere in the workspace, so the first
 (below):
 
 ```bash
-git -C <workspace> log --reverse --format=%s | head -n 1
+git -C <workspace> log --max-parents=0 --format=%s
 ```
 
 No git history, or a first commit that names no DNS, means ask the user which Vault the
@@ -133,13 +132,15 @@ answered without a check is a guess wearing a file path.
 `references/workspace-layout.md` maps question to file. The short version:
 
 - An object's attributes, relationships, and lifecycle: `components/Object/<name>/<name>.mdl`.
-  Its fields are split out, one folder each, under `components/Object/<name>/Field/`.
+  Its fields are inline in that file or one folder each under `Field/`, one of the two layouts
+  in `${CLAUDE_PLUGIN_ROOT}/reference/vault-cli.md`.
 - Picklist values: `components/Picklist/<name>/`.
 - States and workflows: `components/Objectlifecycle/`, `components/Doclifecycle/`,
-  `components/Objectworkflow/`. A subcomponent has its own folder, and XML bodies sit beside
-  its `.mdl` (`rule.xml`, `step_detail.xml`, `page_markup.xml`).
-- What a component references: `.vault/dependencies.json`, a map of `<Type>.<name>` to
-  `{"depends_on": [...]}`. Dependents of X are the keys whose list contains X.
+  `components/Objectworkflow/`. Subcomponents and their XML sidecars (`rule`, `step_detail`,
+  `page_markup`) follow the two layouts in `${CLAUDE_PLUGIN_ROOT}/reference/vault-cli.md`.
+- What a component references: `.vault/relationships.json`, a map of `<Type>.<name>` to
+  `{"label", "relationships": [...]}`, each row naming a component it references by
+  `target_type` and `target_name`. Dependents of X are the keys with a row whose target is X.
 - Object types: `components/Objecttype/<object>.<type>/`, separate from the object itself.
 - A type's attribute vocabulary: `.vault/metadata/<Type>.json`.
 - Java SDK source: `javasdk/`, by package path. Custom Pages: `custom_pages/`.
@@ -154,8 +155,8 @@ it; a field that points at a missing picklist is the first thing to fail on the 
 1. Get the seed objects from the user, or from the custom (`__c`) objects when they say "our
    stuff". Ask which objects when it is not obvious; a shared object such as an address is
    theirs to include or leave out.
-2. Walk `.vault/dependencies.json` outward from the seeds in both directions: what each
-   component lists under `depends_on`, and every key whose `depends_on` names it. Keep going
+2. Walk `.vault/relationships.json` outward from the seeds in both directions: the targets in
+   each component's `relationships`, and every key with a row that targets it. Keep going
    from each custom (`__c`) component that turns up until nothing new appears. Forward collects
    the picklists, lifecycles, and other objects the seeds need; backward collects the page
    layouts, validations, workflows, tabs, document fields, and doctypes that hang off them.
@@ -173,10 +174,10 @@ it; a field that points at a missing picklist is the first thing to fail on the 
    them. Standard (`__v`, `__sys`) components in the walk already exist on a target of the same
    application; list them as assumed present rather than as things to create.
 
-The file is a flat JSON map and a full one runs to hundreds of kilobytes, so walk it with a
+The file is one JSON map and a full one runs past a megabyte, so walk it with a
 few lines of whatever is on the machine (`node`, `python`, `jq`) rather than reading it or
 chaining `grep` context flags, which miss entries whose lists run long. `cd` into
-`<workspace>/.vault` first and open `dependencies.json` by its bare name: on Windows, Git Bash
+`<workspace>/.vault` first and open `relationships.json` by its bare name: on Windows, Git Bash
 turns `~` and `$HOME` into `/c/Users/...`, which Python and Node cannot open.
 
 Do not call the set complete until steps 2 to 4 have all run. "Nothing else touches this" is a

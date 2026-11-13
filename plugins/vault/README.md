@@ -7,7 +7,7 @@ documents with VQL.
 
 | Skill | What it does | Example ask |
 |---|---|---|
-| [login](skills/login/SKILL.md) | Signs in to a named Vault with an API access token, a username and password, or an SSO token, stays signed in across tool calls, points every command at one Vault by its DNS, and classifies the target as production or not before anything writes. The base every other Vault skill in this marketplace calls. | "Sign in to my QA sandbox" |
+| [login](skills/login/SKILL.md) | Signs in to a named Vault with SSO through the browser, a username and password, or an API access token, stays signed in across tool calls, switches Vaults by DNS and proves which one the CLI is on, classifies the target as production or not before anything writes, and says what kind of Vault it is (application family, API version). The base every other Vault skill in this marketplace calls. | "Sign in to my QA sandbox" |
 | [query](skills/query/SKILL.md) | Turns plain-English questions into correct VQL, reviews existing queries for syntax errors and common failure modes, and runs confirmed queries against the connected Vault. | "Get all product records where status is active" |
 
 ## Setup
@@ -22,7 +22,7 @@ documents with VQL.
   installs to `%LOCALAPPDATA%\VeevaCLI`, adds it to your user PATH, and the window you installed
   from can run it right away; other open terminals, and a Claude Code session already running,
   need a restart. On macOS or Linux, run
-  `curl -fsSL https://download.veevavault.dev/cli/install.sh | sh`; it installs to
+  `curl -fsSL https://download.veevavault.dev/cli/install.sh | bash`; it installs to
   `/usr/local/bin` when that's writable, otherwise `~/.local/bin`, and warns if that folder
   isn't on your PATH. After that, `vault upgrade` moves it to the latest release. Check with
   `vault --version`; if it reports something older than 26.2.4, another `vault` earlier on your

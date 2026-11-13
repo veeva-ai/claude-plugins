@@ -39,6 +39,7 @@ non-production.
   install line.
 - A Java project to put generated `.java` files in; the skills write source, you compile it, and
   `vault config push` deploys it within one Vault.
+  `vault-administrator`'s `vpk` skill packages and deploys it for another Vault.
 - For the Custom Pages worked example: Node.js and npm (the scaffold's install steps cover the
   rest).
 
@@ -52,8 +53,11 @@ than a name.
   job (Step 6).
 - `java-sdk` stops at source on disk and sends deployment to
   `vault-administrator`'s `config` and `mdl` skills.
+  Packaging goes to its `vpk` skill.
 - `custom-pages` sends MDL execution to `vault-administrator`'s `mdl` skill, query construction
   to `vault`'s `query` skill, and deploying the page to `config`.
+  Packaging it goes to `vpk`.
 - `ai-agents` sends MDL authoring and execution to `mdl`, the Java SDK platform constraints
   to `java-sdk`, running or checking an agent action over the Vault API to `api`, and
   deploying to `config`.
+  Packaging goes to `vpk`.

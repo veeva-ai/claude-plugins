@@ -10,7 +10,7 @@ These plugins are new, and skills change between releases. Read the release note
 | Plugin | Install it if you are | Skills |
 |---|---|---|
 | [vault](plugins/vault/README.md) | Anyone working with a live Vault | login, query |
-| [vault-administrator](plugins/vault-administrator/README.md) | An administrator reading, changing or moving configuration | config, file-staging, mdl, reporting |
+| [vault-administrator](plugins/vault-administrator/README.md) | An administrator reading, changing or moving configuration | config, file-staging, mdl, reporting, vpk, process-monitor, ai-metadata |
 | [vault-developer](plugins/vault-developer/README.md) | A developer using the Vault API, the Java SDK, Custom Pages or Vault AI Agents | api, java-sdk, custom-pages, ai-agents |
 
 `vault-administrator` depends on `vault`, and `vault-developer` depends on both.

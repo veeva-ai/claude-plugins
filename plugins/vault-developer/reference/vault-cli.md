@@ -3,7 +3,7 @@
 The Vault CLI (`vault`) is a Veeva product. The skills drive it and do not reimplement it.
 This file is everything the skills assume about it, so a CLI change is an edit here and
 nowhere else. The copies under the other plugins' `reference/`
-folders are identical to this one; edit this file and run `scripts/validate-all.sh`.
+folders are identical to this one.
 
 ## The rules
 
@@ -15,7 +15,7 @@ folders are identical to this one; edit this file and run `scripts/validate-all.
    the README's install line for the user's OS once they say yes (the permission prompt is the
    yes; never run it unasked). Windows PowerShell:
    `irm https://download.veevavault.dev/cli/install.ps1 | iex`; macOS or Linux:
-   `curl -fsSL https://download.veevavault.dev/cli/install.sh | sh`. A session that was already
+   `curl -fsSL https://download.veevavault.dev/cli/install.sh | bash`. A session that was already
    running may not see the new PATH, so if plain `vault` still answers nothing, call it by its
    install path: `%LOCALAPPDATA%\VeevaCLI\vault.exe`, or `/usr/local/bin/vault` and then
    `~/.local/bin/vault`. If `vault version` still reports the previous version after the
@@ -58,17 +58,24 @@ first command on a Vault and again right before every write:
 MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '
 ```
 
-The host in `> GET https://<dns>/...` is where the next command lands; no line at all means
-the CLI has no sign-in to use. A host that is not the Vault the user named stops the work until
+The host in `> GET https://<dns>/...` is where the next command lands. No line at all means no
+request went out. The one re-run allowed is that same call once without the `grep`, to read
+the CLI's reason. A host
+that is not the Vault the user named stops the work until
 the CLI is on the right one: `vault switch --dns <dns>`, or, when the installed CLI has no
 `switch` or refuses it (a token sign-in, or a Vault the session cannot reach), the user signs
 in again with `vault login --dns <dns>`. Prove it again after either. A CLI upgrade can drop
-the stored sign-ins; sign in again with the DNS the user named, not one an error suggests.
+the stored sign-ins; the user signs in again with the DNS they named, not one an error suggests.
+
+A command that exits 4 with a message that starts `this shell hasn't confirmed` or `no shell
+to confirm`, or that says `not logged in` after the user has signed in, sent nothing to the
+Vault. Show the user the CLI's message as it printed it and stop. The user decides what happens
+next: do not retry the command, or act on what the message suggests, on your own.
 
 | Operation | Command |
 |---|---|
 | Is the CLI here | `vault version` |
-| Sign in (SSO in a browser by default) | `vault login`, or `vault login --dns <dns>` to skip the Vault picker |
+| Sign in (browser sign-in by default) | `vault login`, or `vault login --dns <dns>` to skip the Vault picker |
 | Which Vault the CLI is on | `MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 \| grep -m1 '^> '`; the host in that line is where every command below runs |
 | Change Vaults | `vault switch --dns <dns>` where the installed CLI has it; otherwise the user runs `vault login --dns <dns>` |
 | Vaults in the user's domain | `vault api "/objects/domain?include_application=true"` returns each Vault's name and ID, no DNS. `vault api "/objects/domains"` returns the user's domains by name and type. Neither returns a Vault DNS, so ask the user for the DNS |
@@ -98,9 +105,8 @@ owns, and the commit is what makes it safe to try one.
 
 A pull does not record anywhere in the workspace which Vault it came from, so the first commit
 does: `first pull from <dns>`. Read it back with
-`git -C <dir> log --reverse --format=%s | head -n 1`. A workspace without that commit came from
-somewhere else; ask the user which Vault it was pulled from, and never take it from the folder
-name.
+`git -C <dir> log --max-parents=0 --format=%s`. No git history, or a first commit that names no
+DNS, means ask the user which Vault it was pulled from, and never take it from the folder name.
 
 If `cli-interim.md` exists beside this file, read it before a pull or a push. It
 lists what to do when a command misbehaves.
@@ -127,21 +133,27 @@ paths and the production check that comes before a write.
 
 ```
 <workspace>/
-  components/<Type>/<name>/<name>.mdl             the component
-  components/<Type>/<name>/<Sub>/<subname>/       one folder per subcomponent: its .mdl,
-                                                  and its XML sidecar when it has one
+  components/<Type>/<name>/<name>.mdl             the component; its subcomponents are laid
+                                                  out one of two ways (below)
   javasdk/                      Java SDK source by package path, com/veeva/vault/custom/...
   custom_pages/<name>/          the built Custom Page distribution and its manifest
-  .vault/                       CLI state: the dependency graph, relationships, per-type metadata
+  .vault/                       CLI state: relationships.json (what each component references),
+                                per-type metadata, and in some workspaces dependencies.json
   .vdxignore                    globs the CLI leaves alone
 ```
 
-A subcomponent is its own file, so an object's fields sit one per folder under
-`components/Object/<name>/Field/`. Components whose body is XML keep it next to the `.mdl` and
-name it from the `.mdl` (`rule(@rule.xml)`): `rule.xml` on a lifecycle user action,
-`step_detail.xml` on a workflow step, `page_markup.xml` on a page layout. A list attribute keeps
-the form the pull wrote it in. The workspace has no `compare` and no `pull --type`; a pull
-takes the whole Vault.
+A pull lays subcomponents out one of two ways, so read the workspace in front of you. Either
+each one is its own folder, `components/Object/<name>/Field/<field>/<field>.mdl`, which the
+object's `.mdl` names as `Field(@Field/<field>.mdl)`, a path that leaves out the `<field>/`
+folder; or the subcomponents sit inline in the object's `.mdl`. An attribute lifted out of the
+MDL sits in a sidecar file beside the file that names it, under the name in that reference,
+such as `rule(@rule.xml)` in the first layout. The attribute name is in the file name: `rule`
+on a lifecycle user action, `step_detail` on a workflow step, `page_markup` on a page layout. A
+subcomponent's sidecar sits in its own folder in the first layout, and beside the parent's
+`.mdl` as `<Sub>.<name>.<attribute>.xml` in the second. A list attribute keeps the form the
+pull wrote it in. Either file in `.vault/` marks a directory as a workspace: every pull leaves
+a `relationships.json`, and `dependencies.json` is not in every workspace. The workspace has no
+`compare` and no `pull --type`; a pull takes the whole Vault.
 
 A pull writes over a file you changed without asking. It stops only before removing files the
 Vault does not have, and in a shell with no terminal it exits asking for `--yes`. The commit
@@ -162,6 +174,7 @@ The CLI builds a class name from the path under `javasdk/`. A Maven layout
   with `vault config package deploy` or through the API. Between Vaults, import the package with
   Import Package (`PUT /api/{version}/services/package`) and deploy it with Deploy Package
   (`POST /api/{version}/vobject/vault_package__v/{package_id}/actions/deploy`).
+  The vault-administrator plugin's vpk skill has both routes.
 - `vault config push --dry-run` lists every local `.java` file as an update on every run.
 - `vault config package deploy` imports, deploys, and polls the deploy job every ten seconds.
   When validation blocks the package it keeps polling and never reports the block, so stop it
@@ -182,8 +195,8 @@ The CLI builds a class name from the path under `javasdk/`. A Maven layout
 - `vault login --password` and `--access-token` take no value: the CLI asks for the secret
   with hidden typing, or reads one line of stdin. `--password` needs `--username` with it. The
   vault plugin's login skill has the lines, for the user to run.
-  A bare `vault login` assumes SSO, and for an account with a Vault password it ends in "SSO
-  login cancelled".
+  A bare `vault login` is a browser sign-in that assumes SSO, and for an account with a Vault
+  password it ends in "SSO login cancelled".
 
 A CLI error that is not in this list is the CLI team's to fix. Capture the command, its
 output, `vault version`, the Vault release, and the ID in brackets at the start of that run's

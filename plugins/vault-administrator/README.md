@@ -12,6 +12,9 @@ non-production, and are handed to you as drafted commands otherwise.
 | [file-staging](skills/file-staging/SKILL.md) | Uploads folder trees and single files to Vault File Staging (VFS), including resumable uploads for large files, and lists, downloads, deletes, moves, and verifies what is staged. | "Stage this folder of PDFs before the document load" |
 | [mdl](skills/mdl/SKILL.md) | Reads, authors, and executes Metadata Definition Language (MDL) for configuration components: statement syntax, RECREATE vs. ALTER semantics, multi-type object rules, a shape checklist for any script it emits or is shown, and checksum verification that a change actually landed. | "Add a text field to my study object across both its types" |
 | [reporting](skills/reporting/SKILL.md) | Explains what an existing report or dashboard shows from its pulled files, traces reports to their report types and dashboards to their reports, drafts a clone or a report type, and builds a report type, reports and a dashboard from templates for the mdl skill to run on your go. Running reports and building them visually stay in the Vault UI. | "What does the Document Views report filter on?" |
+| [vpk](skills/vpk/SKILL.md) | Builds a Vault package from a workspace, deploys a VPK to a Vault the login skill has cleared, validates it first, and reads the deploy results step by step instead of trusting the command's return. The route for Java SDK code moving between Vaults, since the packages the CLI builds leave Java out. | "Get the trigger and its object onto the QA sandbox" |
+| [process-monitor](skills/process-monitor/SKILL.md) | Explains what a Process Monitor view measures from its pulled files, and drafts new views and clones (cycle time between lifecycle states, filters, target, metrics, charts) from verified rules for the mdl skill to run on your go. Running a view and reading its results stay in Process Monitor. | "Build a process view of complaint cycle time from New to Closed by severity" |
+| [ai-metadata](skills/ai-metadata/SKILL.md) | Picks which objects, document types and picklists need Vault AI metadata, drafts it as Vsm component files with a review file for the SME, checks the draft offline, and hands it to the mdl skill to run on your go. | "Draft AI metadata for our custom objects" |
 
 ## Setup
 
@@ -42,6 +45,6 @@ non-production, and are handed to you as drafted commands otherwise.
 - Building REST calls beyond a VQL query is `vault-developer`'s `api` skill.
 - `mdl` refuses to author the Java SDK source an MDL statement references and hands it to
   `vault-developer`'s `java-sdk` skill by name, however the ask is worded.
-- Moving components and code between Vaults as a package goes through Admin > Deployment >
-  Outbound and Inbound Packages, or Import Package and Deploy Package over the API.
-  Bulk loads and extracts run through `vault-developer`'s `api` skill (Step 6).
+- Moving components and code between Vaults as a package stays in this plugin, with the `vpk`
+  skill.
+- Bulk loads and extracts run through `vault-developer`'s `api` skill (Step 6).

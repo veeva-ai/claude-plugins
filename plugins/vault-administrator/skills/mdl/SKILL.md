@@ -22,8 +22,7 @@ picklists, doctypes, lifecycles, workflows, security rules, and the content-bear
 Step 5. Out of bounds, with the skill that owns each:
 
 - Java SDK source that an MDL statement references: the vault-developer plugin's java-sdk skill.
-- Moving components between Vaults as a package: Admin > Deployment > Outbound and Inbound
-  Packages, or Import Package and Deploy Package.
+- Moving components between Vaults as a package: the vpk skill.
 - A question about record or document data rather than configuration: that is VQL, not MDL.
 - A one-off load or extract of record data: that is Vault Loader, not MDL.
 - A checkbox under Admin > Settings, where no component changes: not a component change at all.
@@ -39,6 +38,8 @@ when it isn't. Hand back the MDL that registers the component against already-de
 
 Report, Reporttype and Dashboard drafts, including a clone of an existing report under a new name,
 come from the reporting skill. This skill executes them.
+Processview drafts, including a clone of an existing view, come from the process-monitor skill.
+This skill executes them.
 
 ## Step 1: Classify what's being asked
 
@@ -58,7 +59,7 @@ identical once paraphrased.
 
 Look on disk first. If the config skill has pulled this Vault, the component is already
 at `components/{ComponentType}/{name}/{name}.mdl` in that workspace (the directory holding
-`.vault/dependencies.json`: the directory the user named, the current project, or its `vault-config/`), and the type's
+`.vault/relationships.json` or `.vault/dependencies.json`: the directory the user named, the current project, or its `vault-config/`), and the type's
 attribute set is in `.vault/metadata/{ComponentType}.json`. An object's types are their own
 components, not part of the object's MDL: `allow_types(true)` on an object means look under
 `components/Objecttype/{object}.{type}/` for each type before deciding whether a field change
@@ -126,7 +127,12 @@ Naming, quoting, and structure rules that apply to everything written in this sk
   answer:
   1. `references/component-type-map.md`, covers the most common types and their required attributes.
      For a `Pagelayout`'s `page_markup` XMLString, also read `references/page-layout-markup.md`
-     for the XML element schema before writing any markup.
+     for the XML element schema before writing any markup. For an object lifecycle entry
+     criterion (`Objectlifecyclestateentrycriterion` and its `rule` XMLString), read
+     `references/objectlifecycle-entry-criteria.md` first: the operator a field type accepts is
+     enforced by Vault, and the obvious way to write a negation is rejected.
+     A `Processview`'s `settings` XMLString and its `Chart` subcomponents are drafted by the
+     process-monitor skill, from its rules file, not here.
   2. Live Vault retrieve (Step 2's `GET /api/mdl/components/{Type}.{name}`), when a Vault session
      is active. This is faster and more authoritative than any doc search. One call returns the
      full, real attribute set for that type.
@@ -284,7 +290,7 @@ Pull, author the files, preview the push, push, preview again:
 MSYS_NO_PATHCONV=1 vault --verbose api "/objects/users/me" 2>&1 | grep -m1 '^> '   # must show mycompany-qa.veevavault.com
 git -C <workspace> add -A && git -C <workspace> commit -qm "before pull"
 vault config pull --dir <workspace>
-git -C <workspace> add -A && git -C <workspace> commit -qm "after pull"   # a new workspace's first commit
+git -C <workspace> add -A && git -C <workspace> commit -qm "after pull"
 # write or edit the component files
 vault config push --dir <workspace> --dry-run     # preview: what a push would deploy
 git -C <workspace> add -A && git -C <workspace> commit -qm "before push"
@@ -296,8 +302,9 @@ vault config push --dir <workspace> --dry-run     # expect no changes
 The pull comes first every time. The preview compares the files with the Vault as it is now, so
 in a workspace that is behind, a change made in Vault since the last pull shows up as an update
 the push would undo. The commit before the pull is not optional: a pull writes over files you
-edited, and git is the only way back. If the workspace is not a repository yet, run
-`git init` in it first.
+edited, and git is the only way back. If the workspace is not a repository of its own yet, run
+`git init` in it before the first `git -C` line: in a plain folder inside another repository,
+`git -C` commits to that repository instead.
 
 After upgrading the CLI, pull again before the first push. A push from a workspace pulled
 with an older CLI has proposed deleting components the workspace did not hold.
@@ -311,10 +318,10 @@ pushed, rule 5 in
 `${CLAUDE_PLUGIN_ROOT}/reference/vault-cli.md` is the only way through: you committed first, so
 rerun the pull with `--yes`, restore the files from git, preview, and push.
 
-A new component is a folder `components/<Type>/<name>/` holding `<name>.mdl`, and each
-subcomponent is its own folder under that, laid out the way a pulled one is. When the component
-has XML (a lifecycle user action's `rule.xml`, a workflow step's `step_detail.xml`, a page
-layout's `page_markup.xml`), find the closest working one in the workspace, copy its folder, and
+A new component is a folder `components/<Type>/<name>/` holding `<name>.mdl`, with its
+subcomponents laid out the way this workspace's pulled ones are. When the component
+has XML (a lifecycle user action's `rule`, a workflow step's `step_detail`, a page
+layout's `page_markup`), find the closest working one in the workspace, copy its folder, and
 rename the files and the names inside. Do not retype it file by file, and do not hand the piece
 that looks hard to the Admin UI. Reading each file and writing a new one is retyping; copy with
 the shell, then rename and replace the names:
@@ -492,6 +499,12 @@ calls when partial application would leave the Vault in a bad state.
   Script API reference gives a worked `RECREATE Recordtrigger` example. ~ Treat a blank/"No"
   entry as a reason to test against a sandbox first, not proof the operation is impossible:
   retrieving a known-good example of that type (Step 2) is the fastest empirical check.
+- **`OLC-FADDS-II-1044` (`operator [Expression [op:OR]] is not supported`) or
+  `OLC-FADDS-II-12517` (`Can only use the following operators: [...]`)** on an
+  `Objectlifecyclestateentrycriterion`: the `rule` XML used `and`/`or`, or an operator the
+  field's data type does not allow. The bracketed list in the second error is the allowed set
+  for that field. `references/objectlifecycle-entry-criteria.md` has the table per field type
+  and the fix for a negated requirement (flip the value, keep the operator).
 - Some scripts fail silently instead of erroring: components flagged "Alter: may not be
   supported for some multi-value attributes" will accept a script without complaint and then not
   apply the change. When a script returns `SUCCESS` and the component looks unchanged, re-retrieve
@@ -511,6 +524,7 @@ documentation says so. The split:
   dependency tracking, or the user says "VPK" / "migration package"**: that is package
   migration, done through Admin > Deployment > Outbound and Inbound Packages or the package API
   calls.
+  It belongs to the vpk skill.
 
 ## Step 9: Present the result and confirm
 

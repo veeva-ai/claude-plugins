@@ -101,6 +101,7 @@ statement (`GET /api/mdl/components/{ComponentType}.{name}`), or as JSON/XML (`G
 Authoring, executing, or troubleshooting an MDL script belongs to the vault-administrator
 plugin's mdl skill; this section only covers reading back what's already deployed. Within one Vault the
 workspace push deploys; between Vaults, a package goes up with Import Package and Deploy Package.
+Packaging and deploying belong to the vault-administrator plugin's vpk skill.
 
 ## Jobs
 
@@ -247,6 +248,7 @@ has no endpoint for that" about one; read the family in the reference first.
   Translation, Domain Information: docs MCP.
 - Configuration Migration and packaging: Import Package and Deploy Package. The
   vault-administrator plugin's mdl skill owns MDL.
+  Its vpk skill builds and deploys the package.
 - Sandbox Vaults: docs MCP. The domain endpoints list the Vaults in a domain and the user's domains; see the login skill's Step 2.
 - Custom Pages (`/uicode/distributions`): custom-pages.
 - Managing Vault Java SDK (`/code/{class_name}`): java-sdk.

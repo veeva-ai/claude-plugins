@@ -31,6 +31,7 @@ Out of scope, with the skill that owns each:
   workspace push. Moving the page between Vaults takes a VPK that carries the `websdk/` layout
   for the client bundle, exported from the source Vault or built by hand, imported and deployed
   with Import Package and Deploy Package through `vault api` or the signed-in session.
+  The vault-administrator plugin's vpk skill builds that package.
 - Vault UI SDK app pages and controls (`ControlRegistry`, `PageControllerContext`,
   `@vault/uisdk`), a different and older mechanism. Its MDL attributes (`default_client_code`,
   `server_code`) must never be set on a Custom Page's `Page` component.
@@ -187,6 +188,7 @@ Report back:
   the page between Vaults as a package, one VPK holds the `Page` MDL,
   the controller under `javasdk/`, and the built client under `websdk/`, imported and deployed with
   Import Package and Deploy Package.
+  The vpk skill builds it.
   This skill runs none of it.
 - **How users reach the page**, as a question with the options, unless the request already says.
   Do not pick one:

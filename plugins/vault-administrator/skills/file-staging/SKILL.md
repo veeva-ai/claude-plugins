@@ -130,7 +130,9 @@ placeholder.
   section.
 - **Whether this upload feeds a bulk load** (Create Multiple Documents, object record attachments,
   renditions, a Vault Loader multi-file load). If it does, every staged path becomes a `file`
-  column value downstream, in the same Admin or non-Admin path form that put it there.
+  column value downstream. Loader reads that value relative to file staging's root, so a
+  non-Admin user's `/Folder/File.txt` goes in the column as `u{their_user_id}/Folder/File.txt`,
+  with the user folder included even though the upload addressed it as the root.
 
 Bulk and single-file work split cleanly. Anything batched, and anything driven by a CSV or JSON
 input listing many records, needs its source files sitting on VFS first and refers to them by

@@ -62,7 +62,10 @@ Out of bounds, with the skill that owns each:
   login skill.
 - Packaging and deploying the finished files. The vault-administrator plugin's config and mdl skills
   push them within a Vault; a package moves them between Vaults.
+  Its vpk skill builds the package.
 - The Custom Page three-file shape. The custom-pages skill.
+- The Vault AI metadata agents read: entity, field, relationship and metric descriptions,
+  synonyms, and picklist values. The vault-administrator plugin's ai-metadata skill.
 
 ## Handoffs
 
@@ -199,6 +202,7 @@ Report back:
   been pushed.
 - Route the next step, do not take it. Deploying belongs to the vault-administrator plugin's
   config and mdl skills.
+  Moving a package between Vaults goes to its vpk skill.
   Calling the Vault
   API to resolve an API name, check a status, or retrieve a deployed agent belongs to the api skill.
 - Where users reach the agent, and how to diagnose a failed run, are in

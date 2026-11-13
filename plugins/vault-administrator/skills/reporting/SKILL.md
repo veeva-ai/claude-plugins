@@ -43,6 +43,9 @@ Out of bounds:
 - A count or list of report records, or who ran which report. That is a data question for the
   vault plugin's query skill (`report__sys`, `report_usage__sys`). Building, explaining or
   cloning a report stays here.
+- Process Views, and cycle time measured between lifecycle states in Process Monitor. Those
+  belong to the process-monitor skill. Cycle time asked for as a report or a dashboard chart stays
+  here.
 
 ## Step 1: Find the files
 
@@ -228,3 +231,5 @@ file gives.
 | Plan, push, run, drop or read back a report, report type or dashboard | mdl |
 | Check a report's totals against a count, report records, who ran what | vault plugin, query |
 | Who can see or edit a report | Admin UI sharing rules |
+| Moving reports between Vaults | vpk |
+| A Process View, or cycle time between lifecycle states in Process Monitor | process-monitor |

@@ -34,11 +34,14 @@ Out of scope, by name:
 - **Deploying it** goes to the vault-administrator plugin's config and mdl skills for a workspace
   push, or to a package built by hand and deployed through the API ("Getting code onto a Vault").
   This skill stops at source on disk.
+- **Building a VPK, validating the package, and deploying it** go to the vault-administrator
+  plugin's vpk skill.
 
 ## Handoffs
 
 - Deployment of anything written here: the vault-administrator plugin's config and mdl skills for a
   workspace push, or the Import Package and Deploy Package calls for a package.
+  Its vpk skill builds that package.
 - "Does Record Migration Mode alone suppress my trigger during this load?": the answer is in
   `references/platform-constraints.md`.
 - A Custom Page: the `custom-pages` skill in this plugin. An AI Agent artifact: the
@@ -132,7 +135,8 @@ Look for an existing `src/main/java/com/veeva/vault/custom` in the developer's p
 `com.veeva.vault.custom.rim.submissions.triggers`), but do not invent one the developer did not
 ask for. No such directory? Ask where the class goes rather than guessing at their project layout.
 
-A Vault CLI workspace (a directory with `.vault/dependencies.json`) keeps code under `javasdk/` by
+A Vault CLI workspace (a directory with `.vault/relationships.json` or `.vault/dependencies.json`)
+keeps code under `javasdk/` by
 package path, `javasdk/com/veeva/vault/custom/...`, with no `src/main/java` in front. The CLI
 builds the class name from the path under `javasdk/`, so a Maven layout placed there produces
 the wrong name. When the developer works in a workspace, that is where the class goes; when
@@ -230,6 +234,7 @@ Report back:
   rest of the workspace through the vault-administrator plugin's config and mdl skills; to move it
   between Vaults as a package, see "Getting code onto a Vault". This
   skill builds no VPK and writes nothing to a Vault.
+  For the package itself, hand off to the vpk skill.
 - Each VQL string run with `vault query` and whether it passed, or the strings handed over to
   run when there was no CLI.
 
@@ -249,6 +254,7 @@ for example triggers that came down in a `vault config pull`. This skill still d
   Import Package (`PUT /api/{version}/services/package`, the `.vpk` as the file) and Deploy Package
   (`POST /api/{version}/vobject/vault_package__v/{package_id}/actions/deploy`), through
   `vault api` or with the session the user already has.
+  The vault-administrator plugin's vpk skill builds and deploys it.
   A Maven project changes nothing here:
   Vault compiles on deploy, so the project's build is not part of deploying. Never route the
   deploy through a build-tool plugin that reads its own credential file, and never ask the user

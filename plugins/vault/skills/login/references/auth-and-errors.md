@@ -58,7 +58,7 @@ there.
 **Package deploy needs a genuine tracked session.** A static API Access Token authenticates
 package import and validate, but deploy fails with `INSUFFICIENT_ACCESS` ("Unable to create
 concealed session token from existing token"), even for a Vault Owner. The identical deploy
-succeeds with a `sessionId` used verbatim as the Authorization value. ~ Plan deploy work on a
+succeeds with a `sessionId` used verbatim as the Authorization value. Plan deploy work on a
 genuine session from the start rather than on a token. Never downgrade the API version to
 route around the error; it masks the credential problem instead of fixing it.
 
@@ -85,7 +85,7 @@ safe to branch application logic on) and a `message` (human-readable, can change
 calls, debugging use only). Some failures, notably auth failures, also carry a top-level
 `errorType` (e.g. `AUTHENTICATION_FAILED`).
 
-`INVALID_SESSION_ID` means different things in different auth modes; SKILL.md Step 4 has the
+`INVALID_SESSION_ID` means different things in different auth modes; SKILL.md Step 6 has the
 read.
 
 **Batch/bulk endpoints wrap this one level deeper.** The outer `responseStatus` can read
@@ -136,9 +136,10 @@ bulk endpoint instead of looping single-record calls, and back off when
 Every endpoint needs a real `{version}` segment filled in, in the form `vXX.X`; never leave the
 literal `{version}` token in a command presented as ready-to-run without flagging it as a
 placeholder. `GET /api/` (itself versionless) lists every version the Vault currently
-supports; the last one listed is Beta, everything before it is GA and frozen for good.
+supports; the last one listed can be the beta of the next release, and everything before it is
+GA and frozen for good.
 
-`~` The general-release boundary moves roughly three times a year (`YY.1`/`YY.2`/`YY.3`).
+The general-release boundary moves roughly three times a year (`YY.1`/`YY.2`/`YY.3`).
 Confirm the current GA version against `GET /api/` or the Vault's own Release Notes before
 assuming any specific version named in this file is still the newest GA.
 

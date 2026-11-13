@@ -1,0 +1,31 @@
+RECREATE Processview example_document_cycle_time__c (
+   label('Example Document Cycle Time'),
+   description(),
+   process('Doclifecycle.example_document_lifecycle__c'),
+   subprocess(),
+   editors(),
+   viewers(),
+   owners('User.admin@example.com'),
+   settings({<?xml version="1.0" encoding="UTF-8"?>
+<settings><cycle_time_unit>days</cycle_time_unit><graph_orientation>vertical</graph_orientation><distribution_bin_width>auto</distribution_bin_width><times_series_interval>auto</times_series_interval><start_steps><step>start_state__c</step></start_steps><start_step_calculation_type>first_time_in</start_step_calculation_type><end_steps><step>end_state__c</step></end_steps><end_step_calculation_type>last_time_in</end_step_calculation_type><timeframe_field>document_creation_date__v</timeframe_field><timeframe><eval>IN_LAST</eval><property>document_creation_date__v</property><dataType>Date</dataType><values><values>3</values><values>MONTHS</values></values></timeframe><metrics><metric>Processmetric.cycle_time_average__sys</metric><metric>Processmetric.cycle_time_median__sys</metric><metric>Processmetric.cycle_time_1st_quartile__sys</metric><metric>Processmetric.cycle_time_3rd_quartile__sys</metric><metric>Processmetric.volume_entered_start_state__sys</metric><metric>Processmetric.volume_entered_end_state__sys</metric><metric>Processmetric.quality_first_time_right_percent__sys</metric><metric>Processmetric.quality_variant_total__sys</metric></metrics><export_columns><column><name>name__v</name><type>field</type><required>true</required></column><column><name>created_by__v</name><type>field</type><required>true</required></column><column><name>id</name><type>field</type><required>true</required></column><column><name>pm_effective_major_version__sys</name><type>field</type><required>true</required></column><column><name>version_modified_date__v</name><type>field</type><required>true</required></column><column><name>major_version_number__v</name><type>field</type><required>true</required></column><column><name>minor_version_number__v</name><type>field</type><required>true</required></column><column><name>status__v</name><type>field</type><required>true</required></column><column><name>type__v</name><type>field</type><required>true</required></column><column><name>pm_cycle_time__sys</name><type>pm_process_metric__sys</type><required>true</required></column><column><name>pm_entered_end_date__sys</name><type>pm_process_metric__sys</type><required>true</required></column><column><name>pm_variant_id__sys</name><type>pm_process_metric__sys</type><required>true</required></column><column><name>document_creation_date__v</name><type>field</type><required>true</required></column></export_columns></settings>}),
+   Chart cycle_time_trend__sys(
+      label('Cycle Time Trend'),
+      type('line'),
+      metrics('Processmetric.cycle_time_average__sys,Processmetric.cycle_time_median__sys,Processmetric.cycle_time_1st_quartile__sys,Processmetric.cycle_time_3rd_quartile__sys'),
+      grouping_field('pm_entered_end_date__sys'),
+      second_grouping(),
+      sort('asc'),
+      sort_field('grouping.pm_entered_end_date__sys'),
+      order(1)
+   ),
+   Chart cycle_time_distribution__sys(
+      label('Cycle Time Distribution'),
+      type('distribution'),
+      metrics('Processmetric.cycle_time_average__sys,Processmetric.cycle_time_median__sys,Processmetric.cycle_time_1st_quartile__sys,Processmetric.cycle_time_3rd_quartile__sys'),
+      grouping_field('pm_cycle_time__sys'),
+      second_grouping(),
+      sort('asc'),
+      sort_field('grouping.pm_cycle_time__sys'),
+      order(2)
+   )
+);

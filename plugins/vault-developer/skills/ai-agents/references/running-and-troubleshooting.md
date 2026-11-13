@@ -10,6 +10,10 @@
 
 For an object-scoped agent, the hand-off names a record of that object to open, not the AI tab.
 
+The Vault AI User Actions permission set gives a user what chatting with any agent takes: Use
+Chat under Vault AI Chat and Execute on All Agents. A user with Use Chat alone needs Execute on
+the specific agent.
+
 ## When an action fails or answers wrongly
 
 Work down this list and stop at the first one that shows the cause.

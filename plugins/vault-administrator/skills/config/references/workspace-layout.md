@@ -8,17 +8,15 @@ configured reads from here before it calls the API.
   components/
     <ComponentType>/
       <name>/
-        <name>.mdl               the component's RECREATE statement
-        <Subcomponent>/<subname>/<subname>.mdl
-                                 one folder per subcomponent (Field/, Picklistentry/, ...)
-        <attr>.js|json|xml|txt   embedded code or long text lifted out of the MDL, next to
-                                 the .mdl that names it (rule.xml, step_detail.xml,
-                                 page_markup.xml)
+        <name>.mdl               the component's RECREATE statement, its subcomponents inline
+                                 or each in a folder of its own (Field/, Picklistentry/, ...):
+                                 the two layouts in ${CLAUDE_PLUGIN_ROOT}/reference/vault-cli.md
+        <attr>.xml|txt           text lifted out of the MDL, beside the file that names it
+                                 (rule, step_detail, page_markup); .txt in some workspaces only
   javasdk/                       Java SDK source by package path, one file per class
   custom_pages/                  Custom Page distributions and code
   .vault/
-    dependencies.json            { "<Type>.<name>": { "depends_on": ["<Type>.<name>", ...] } }
-                                 rebuilt on every pull
+    dependencies.json            in some workspaces only; read relationships.json instead
     relationships.json           { "<Type>.<name>": { "label", "relationships": [ { "blocking_type",
                                  "target_type", "target_name", ... } ] } }
     metadata/<ComponentType>.json
@@ -28,8 +26,9 @@ configured reads from here before it calls the API.
 
 Component type names are the Metadata Definition Language (MDL) names (`Object`, `Picklist`, `Doclifecycle`, `Workflow`,
 `Pagelayout`, ...), the same strings the component-types metadata endpoint returns in
-`name`. Objects are under `components/Object/<object_name>/`. The object's fields are split
-out under `Field/`, one folder each, and `<object_name>.mdl` holds the object-level attributes.
+`name`. Objects are under `components/Object/<object_name>/`. `<object_name>.mdl` holds the
+object-level attributes, and the fields are either inline in it or split out under `Field/`, one
+folder each (the two layouts in `${CLAUDE_PLUGIN_ROOT}/reference/vault-cli.md`).
 A list attribute keeps the form the pull wrote it in.
 The CLI writes `.vault/metadata/<ComponentType>.json` only for a type with at least one component, and
 none for a schemaless type; a type with no components has no directory under `components/`.
@@ -37,8 +36,8 @@ none for a schemaless type; a type with no components has no directory under `co
 ## Which Vault it came from
 
 Nothing the pull writes names the source Vault or the pull time. The DNS lives in the first
-commit's message (SKILL.md Step 2), and the last pull time is the modified time of
-`.vault/dependencies.json`. A workspace without that commit came from somewhere else, so ask the
+commit's message (SKILL.md Step 2). The modified time of `.vault/relationships.json` is the last
+pull that changed it, which can be earlier than the last pull. No git history, or a first commit that names no DNS, means ask the
 user which Vault it was pulled from.
 
 ## What the pull covers

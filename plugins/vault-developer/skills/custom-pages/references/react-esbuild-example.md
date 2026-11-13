@@ -94,6 +94,7 @@ Vault. To move the page between Vaults as a package, one VPK carries the built
 `dist/` and `distribution-manifest.json` under `websdk/{distribution name}/`, the controller under
 `javasdk/src/main/java/` by package path, and the `Page` MDL as a component step, imported and
 deployed with Import Package and Deploy Package.
+The vpk skill builds it.
 
 ## Local dev loop
 

@@ -389,7 +389,9 @@ usual way to retire a field or object that has been used. Ask which the user wan
 
 After the user's go for the batch, the skill runs the push itself. A push that carries a delete is the exception: the CLI lists the deletes and asks for
 confirmation, a shell without a terminal cannot answer it, and `--yes` is never the answer, so
-hand that command to the user to run in their own terminal and read the result back. Either way,
+hand that command to the user to run in the terminal Claude Code is started from (they type
+`/exit`, run it there, and resume with `claude --continue`), because `!` has no keyboard for
+the delete prompt and a sign-in may not reach another tab, and read the result back. Either way,
 read the push output's errors block, not its last line.
 
 ### Ordering a set of new components

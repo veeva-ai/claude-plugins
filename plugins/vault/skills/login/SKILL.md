@@ -51,8 +51,8 @@ and offer the drafted command instead of running it.
 
 Never ask for a password, an access token, a session ID, or an OAuth token in chat, and never
 run a command with one on its command line (`--password`, `--access-token`, `--session-id`).
-The user runs sign-in in their own terminal. A secret pasted into chat is in the transcript
-already: decline to use it and advise rotating it.
+The user runs sign-in themselves, where Step 2 says. A secret pasted into chat is in the
+transcript already: decline to use it and advise rotating it.
 
 ## Step 1: Check for the CLI
 
@@ -122,7 +122,7 @@ command ends in a sign-in error): ask how they sign in to that Vault before
 handing over a command. The bare `vault login` is a browser sign-in that assumes SSO, and for
 an account with a Vault password and no identity provider it just ends in "SSO login cancelled". One
 question settles it: SSO, a Vault username and password, or an API access token they already
-have. Then hand over the line that fits and wait for them to run it in their own terminal.
+have. Then hand over the line that fits, say where to run it (below), and wait.
 
 SSO:
 
@@ -147,6 +147,18 @@ vault login --dns mycompany-qa.veevavault.com --access-token
 The CLI also reads the secret from one line of stdin when it is piped in. These lines are for
 the user to run. Never run them yourself, and never ask for the value.
 
+Say where to run the line. A browser sign-in is typed at this prompt with `!` in front; add
+`--username`, because that prompt has no keyboard to ask for it:
+
+```bash
+! vault login --dns mycompany-qa.veevavault.com --username me@mycompany.com
+```
+
+A password or token needs a keyboard, so it goes in the terminal Claude Code is started from:
+the user types `/exit`, runs the sign-in line there, and resumes with `claude --continue`.
+The reason: when `vault login --help` lists `--scope`, a sign-in stays with the terminal tab or
+window it was made in, out of reach of a Claude Code started elsewhere.
+
 A password or SSO sign-in stores a session, and a session idles out, often in the middle of a
 long task: the next command fails with `INVALID_SESSION_ID` and the user has to sign in again.
 The CLI keeps no password, so it cannot do that for them. How long a session may idle is the
@@ -156,7 +168,7 @@ Policies, which wins over the domain value. Changing either takes a Domain Admin
 session ends at 48 hours however active it is. Right after a password or SSO
 sign-in, offer an API access token so the rest of the work does not idle out. The user creates
 it in the API Access Tokens section of their user profile in Vault, which shows the value once,
-and signs in with it in their own terminal:
+and signs in with it in the terminal Claude Code is started from:
 
 ```bash
 vault login --dns <dns> --access-token
@@ -297,17 +309,31 @@ counted per username and Vault DNS over a one-minute window.
 ## Step 6: When a call fails to authenticate
 
 - `INVALID_SESSION_ID`: an expired or ended session, or a disabled or revoked API token. With
-  the CLI, the fix is the user running `vault login --dns <dns>` again, with the DNS they
-  named rather than one the error message suggests. A CLI upgrade can drop every stored
+  the CLI, the fix is the user running `vault login --dns <dns>` again, where Step 2 says,
+  with the DNS they named rather than one the error message suggests. A CLI upgrade can drop every stored
   sign-in the same way. With a token, the token itself is the problem.
 - A token/username mismatch, or a credential Vault rejects: stop and say so. Never fall back
   to a different credential than the one the user chose.
 - Repeated auth failures then a lockout-shaped error: the auth burst limit. Wait it out rather
   than retrying.
-- Exit 4 with a message that starts `this shell hasn't confirmed` or `no shell to confirm`, or
-  `not logged in` after the user has signed in: nothing reached the Vault. Show the user the
-  CLI's message as it printed it and stop. The user decides what happens next; do not retry the
-  command, or act on what the message suggests, on your own.
+- Exit 1 with `not logged in` after the user has signed in, or exit 4 with a message that
+  starts `this shell hasn't confirmed` or `no shell to confirm`: nothing reached the Vault.
+  Show the user the CLI's message as it printed it, say in one line what it means, hand over
+  the line that fits, and wait. Never run that line, never retry the command, never set
+  `VAULT_CLI_USER`, and never run `vault switch` or `vault user switch` to get past the
+  message: confirming a user is the user's step.
+  - `this shell hasn't confirmed which user and vault to use` names a user and a Vault: the
+    shell Claude Code runs in has not confirmed them. When both are the ones the user means,
+    they type `! vault user switch <username>` at this prompt. When either is not, the
+    sign-in line from Step 2.
+  - `this shell hasn't confirmed which user to use` names no user: run `vault user list`
+    (it is not gated), ask which, and hand over `! vault user switch <username>` for the one
+    they pick. A bare `vault user switch` through `!` fails when several users are stored.
+  - `not logged in`: the shell Claude Code runs in sees no sign-in. Hand over the sign-in
+    line from Step 2, run where Step 2 says.
+  - `no shell to confirm`: the CLI finds a shell only when Claude Code is started from a
+    terminal. Say that and stop; the user decides what to do.
+  Once they say it is done, run the proof line from Step 2.
 - Any other sign-in error from a CLI command while the user says they are signed in: run the
   proof line from Step 2 and compare its host with the DNS they meant.
 

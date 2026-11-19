@@ -45,8 +45,9 @@ folders are identical to this one.
    before handing over the first. In Windows PowerShell, `~` is not expanded for a program's
    arguments (use `"$HOME\.veeva-vault\..."`), `&&` does not exist (one command per line), and
    a bash script runs as `& "C:\Program Files\Git\bin\bash.exe" "<path to script>"`. A script
-   that pauses for input runs in the user's own terminal, not through Claude Code's `!` prompt,
-   which has no keyboard attached.
+   that pauses for input runs in the terminal Claude Code is started from (the user types
+   `/exit`, runs it there, and resumes with `claude --continue`), not through Claude Code's `!`
+   prompt, which has no keyboard attached.
 
 ## Commands
 
@@ -67,10 +68,19 @@ the CLI is on the right one: `vault switch --dns <dns>`, or, when the installed 
 in again with `vault login --dns <dns>`. Prove it again after either. A CLI upgrade can drop
 the stored sign-ins; the user signs in again with the DNS they named, not one an error suggests.
 
-A command that exits 4 with a message that starts `this shell hasn't confirmed` or `no shell
-to confirm`, or that says `not logged in` after the user has signed in, sent nothing to the
-Vault. Show the user the CLI's message as it printed it and stop. The user decides what happens
-next: do not retry the command, or act on what the message suggests, on your own.
+A command that ends at exit 1 with `not logged in` after the user has signed in, or at exit 4
+with a message that starts `this shell hasn't confirmed` or `no shell to confirm`, sent nothing
+to the Vault. Show the user the CLI's message as it printed it, say in one line what it means,
+hand over the line that fits, and wait. For `this shell hasn't confirmed` naming a user and a
+Vault, both the ones the user means, that is `! vault user switch <username>` typed at this
+prompt, and when either is not, the sign-in line; with no user named, run `vault user list`
+(not gated), ask which, and hand over the same line for the one they pick. For `not logged
+in`, it is the sign-in line, typed at this prompt with `!` (a browser sign-in, with
+`--username`) or, for a password or token, run in the terminal Claude Code is started from
+(`/exit`, sign in there, `claude --continue`). For `no shell to confirm`, say the CLI finds a
+shell only when Claude Code is started from a terminal, and stop. Do not retry the command,
+run that line, set `VAULT_CLI_USER`, or run `vault switch` or `vault user switch` to get past
+the message.
 
 | Operation | Command |
 |---|---|
